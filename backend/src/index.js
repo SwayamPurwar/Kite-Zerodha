@@ -15,12 +15,14 @@ const PORT = process.env.PORT || 3002;
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "https://swayamzerodha.vercel.app"],
     methods: ["GET", "POST"]
   }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:5173", "https://swayamzerodha.vercel.app"]
+}));
 
 // INCREASED LIMIT TO 50MB FOR LARGE HIGH-RES AVATARS
 app.use(bodyParser.json({ limit: "50mb" }));
