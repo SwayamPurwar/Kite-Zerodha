@@ -44,6 +44,9 @@ app.use("/user", userRoute);
 // Start the live market engine
 require("./controllers/marketController").startMarketEngine(io);
 
+app.get("/", (req, res) => {
+  res.send("Kite Trading Backend is Live and Running!");
+});
 server.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
 });
