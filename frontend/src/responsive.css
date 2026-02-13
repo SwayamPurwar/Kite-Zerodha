@@ -1,0 +1,81 @@
+/* --- Base Desktop Classes --- */
+.responsive-flex {
+  display: flex;
+  gap: 30px;
+}
+
+.responsive-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.responsive-modal {
+  position: fixed;
+  width: 700px;
+  left: 50%;
+  top: 15%;
+  transform: translateX(-50%);
+  z-index: 1000;
+}
+
+/* --- Mobile Breakpoints --- */
+@media (max-width: 850px) {
+  
+  /* 1. Stack the Main App Layout (Watchlist top, Content bottom) */
+  .app-container {
+    flex-direction: column !important;
+  }
+  .watchlist-container {
+    width: 100% !important;
+    height: 45vh !important; /* Watchlist takes top 45% of phone screen */
+    border-right: none !important;
+    border-bottom: 1px solid #eee;
+  }
+  .content-container {
+    width: 100% !important;
+    height: 55vh !important; /* Content takes bottom 55% */
+    overflow-y: auto !important;
+  }
+
+  /* 2. Stack Side-by-Side Elements Vertically */
+  .responsive-flex {
+    flex-direction: column !important;
+    gap: 15px !important;
+  }
+
+  /* 3. Turn 2-column grids into 1-column */
+  .responsive-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 4. Fix pop-up windows so they don't overflow the phone screen */
+  .container#buy-window, 
+  .responsive-modal {
+    width: 95% !important;
+    left: 2.5% !important;
+    transform: none !important;
+    top: 10% !important;
+  }
+
+  /* 5. Make the Top Navigation scrollable horizontally */
+  .menu-section {
+    display: flex !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    gap: 15px !important;
+    padding-bottom: 5px;
+  }
+  
+  /* Hide the divider to save space */
+  .logo-section .divider, .logo-section .link {
+    display: none !important;
+  }
+
+  /* 6. Fix Data Tables (Holdings/Orders) so they swipe horizontally */
+  .order-table {
+    overflow-x: auto !important;
+    display: block;
+    width: 100%;
+  }
+}

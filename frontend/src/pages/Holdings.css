@@ -1,0 +1,60 @@
+.profit {
+  color: #4caf50;
+}
+
+.loss {
+  color: #df514d;
+}
+
+.row {
+  display: flex;
+  margin-top: 20px;
+  justify-content: space-between;
+  padding: 0 50px; /* Indent the summary slightly */
+}
+
+.col h5 {
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin-bottom: 5px;
+  color: #444;
+}
+
+.col p {
+  color: #9b9b9b;
+  font-size: 0.8rem;
+}
+
+.holdings-container {
+  padding: 10px;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 20px;
+}
+
+.profit {
+  color: #4caf50;
+}
+
+.loss {
+  color: #df514d;
+}
+
+.order-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Row styling mimicking the Kite dashboard */
+tr {
+  border-bottom: 1px solid #eee;
+  height: 50px;
+}
+
+tr:hover {
+  background-color: #fbfbfb;
+}

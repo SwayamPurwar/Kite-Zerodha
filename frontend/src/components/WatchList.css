@@ -1,0 +1,139 @@
+/* Ensure the component fills the parent container */
+.watchlist-sub-container {
+  width: 100%; 
+  height: 100%;
+}
+
+.search-container {
+  padding: 15px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search-container .search {
+  width: 70%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-container .counts {
+    font-size: 12px;
+    color: #9b9b9b;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- THE FIX IS HERE --- */
+.list li {
+  position: relative; /* <--- This anchors the absolute buttons inside this row */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px; /* Reduced padding slightly for better density */
+  border-bottom: 1px solid #f1f1f1;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 60px; /* Fixed height ensures buttons center vertically */
+}
+
+.list li:hover {
+  background-color: #f8f8f8;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.item p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #444;
+}
+
+.itemInfo {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+}
+
+.percent {
+    font-size: 11px;
+    color: #9b9b9b;
+    margin-right: 5px;
+}
+
+.price {
+  font-size: 13px;
+  color: #444;
+}
+
+.down { color: #df514d !important; }
+.up { color: #4caf50 !important; }
+
+/* --- ACTION BUTTONS (The B/S Hover Menu) --- */
+.actions {
+    display: none; 
+    align-items: center;
+    gap: 10px; /* Space between buttons */
+}
+
+/* Show actions when hovering */
+.list li:hover .actions {
+    display: flex; 
+    position: absolute;
+    right: 10px; /* Locks it 10px from the right edge of the SIDEBAR */
+    top: 50%;
+    transform: translateY(-50%); /* Perfectly centers it vertically */
+    background: #f8f8f8; /* Matches the hover background color */
+    z-index: 10;
+    padding-left: 10px; /* Prevents text overlap visual glitch */
+}
+
+.action-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+}
+
+.buy-btn {
+    background-color: #4184f3;
+    color: #fff;
+    width: 30px;
+    height: 30px;
+    font-weight: 600;
+}
+
+.sell-btn {
+    background-color: #df514d;
+    color: #fff;
+    width: 30px;
+    height: 30px;
+    font-weight: 600;
+}
+
+.icon {
+    font-size: 1.2rem !important;
+    color: #9b9b9b;
+}
+
+/* Hide the price when hovering to make room for buttons (Optional, like Kite) */
+.list li:hover .item .price {
+    opacity: 0; 
+}

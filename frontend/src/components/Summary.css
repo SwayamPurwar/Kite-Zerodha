@@ -1,0 +1,39 @@
+.summary-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px; /* Space between summary and table */
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.summary-container .section {
+  text-align: left;
+}
+
+.summary-container span {
+  font-size: 13px;
+  color: #9b9b9b;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.summary-container h3 {
+  font-size: 22px;
+  color: #444;
+  margin: 0;
+  font-weight: 400;
+}
+
+.summary-container .profit {
+  color: #4caf50;
+}
+
+.summary-container .loss {
+  color: #df514d;
+}
+
+.summary-container small {
+  font-size: 14px;
+  margin-left: 5px;
+}
