@@ -14,16 +14,20 @@ const seedDB = async () => {
     try {
         await HoldingsModel.deleteMany({}); 
         await OrdersModel.deleteMany({});   
+        // We do NOT delete users here usually, but for this fix, we should ensures clean state
+        // If you want to keep users, you'd have to manually update them. 
+        // For dev, it's easier to create a fresh valid user.
+        await UserModel.deleteMany({ email: "test@zerodha.com" });
+
+        let dummyUser = new UserModel({
+            email: "test@zerodha.com",
+            password: "password123", 
+            name: "Test User", // Added Name
+            phone: "9999999999", // Added Phone
+            walletBalance: 100000
+        });
         
-        let dummyUser = await UserModel.findOne({ email: "test@zerodha.com" });
-        if (!dummyUser) {
-            dummyUser = new UserModel({
-                email: "test@zerodha.com",
-                password: "password123", 
-                walletBalance: 100000
-            });
-            await dummyUser.save();
-        }
+        await dummyUser.save();
 
         const tempHoldings = [
           { userId: dummyUser._id, name: "BHARTIARTL", qty: 2, avg: 538.05, price: 541.15, net: "+0.58%", day: "+2.99%" },
