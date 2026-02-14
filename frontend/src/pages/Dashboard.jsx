@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Positions from "../components/Positions";
 import { Link } from "react-router-dom";
-
+import { API_URL } from "../config";
 const Dashboard = () => {
   const balance = localStorage.getItem("walletBalance") || "0.00";
   const [userName, setUserName] = useState("User"); // Default fallback
@@ -11,7 +11,7 @@ const Dashboard = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:3002/user/profile", {
+        const res = await axios.get(`${API_URL}/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         

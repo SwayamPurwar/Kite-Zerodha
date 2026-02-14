@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Line } from "react-chartjs-2";
+import { API_URL } from "../config"; // IMPORT THE PRODUCTION URL
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -33,7 +34,7 @@ const GeneralGraph = ({ uid, closeChart }) => {
 
   useEffect(() => {
     // Fetch the 100-day historical data from our backend
-    axios.get(`http://localhost:3002/market/history/${uid}`)
+    axios.get(`${API_URL}/market/history/${uid}`)
       .then((res) => {
         const data = res.data;
         if (!data || data.length === 0) {

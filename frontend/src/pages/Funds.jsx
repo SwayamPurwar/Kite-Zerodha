@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-
+import { API_URL } from "../config";
 const Funds = () => {
   const [amount, setAmount] = useState("");
   const [balance, setBalance] = useState(Number(localStorage.getItem("walletBalance") || 0));
@@ -15,7 +15,7 @@ const Funds = () => {
     try {
       const token = localStorage.getItem("token");
       
-      const res = await axios.post("http://localhost:3002/user/funds", {
+      const res = await axios.post(`${API_URL}/user/funds`, {
         amount: updateValue
       }, {
         headers: { Authorization: `Bearer ${token}` }

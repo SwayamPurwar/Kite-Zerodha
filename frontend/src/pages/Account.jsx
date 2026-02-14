@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import { API_URL } from "../config";
 const Account = () => {
   const [userData, setUserData] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -13,7 +13,7 @@ const Account = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:3002/user/profile", {
+        const res = await axios.get(`${API_URL}/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUserData(res.data);

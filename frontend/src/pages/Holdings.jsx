@@ -4,7 +4,7 @@ import axios from "axios";
 import { io } from "socket.io-client"; 
 import Summary from "../components/Summary";
 import "./Holdings.css";
-
+import { API_URL } from "../config";
 const Holdings = () => {
   const [allHoldings, setAllHoldings] = useState([]);
   const [livePrices, setLivePrices] = useState({}); 
@@ -13,7 +13,7 @@ const Holdings = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    axios.get("http://localhost:3002/allHoldings", {
+    axios.get(`${API_URL}/allHoldings`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((res) => {

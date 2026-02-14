@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Tooltip, Grow } from "@mui/material";
 import { BarChartOutlined, KeyboardArrowDown, KeyboardArrowUp, MoreHoriz } from "@mui/icons-material";
 import { io } from "socket.io-client"; 
-
+import { API_URL } from "../config";
+import axios from "axios";
 import BuyActionWindow from "./BuyActionWindow"; 
 import SellActionWindow from "./SellActionWindow"; 
 import GeneralGraph from "./GeneralGraph"; // NEW: Import Graph Component
@@ -22,17 +23,18 @@ const WatchList = () => {
 
   // Connect to Socket.io for live prices
   useEffect(() => {
-    const socket = io("http://localhost:3002");
+  // 1. Updated Socket Connection
+  const socket = io(API_URL); 
 
-    socket.on("market-data", (data) => {
-      setWatchlist(data); 
-    });
+  // 2. Updated Axios Fetch
+  axios.get(`${API_URL}/prices`, { // Updated URL
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+  }).then(res => setWatchlist(res.data));
 
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+  socket.on("market-data", (data) => setWatchlist(data));
 
+  return () => socket.disconnect();
+}, []);
   const handleBuyClick = (uid, currentPrice) => {
     setSelectedStockUID(uid);
     setSelectedPrice(currentPrice); 

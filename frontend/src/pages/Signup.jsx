@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./Auth.css";
-
+import { API_URL } from "../config"; // IMPORT YOUR DYNAMIC URL
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -12,7 +12,7 @@ const Signup = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:3002/auth/signup", {
+      const res = await axios.post(`${API_URL}/auth/signup`, {
         email,
         password,
       });

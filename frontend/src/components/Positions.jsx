@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-
+import { API_URL } from "../config";
 // Register Chart.js elements
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -13,7 +13,7 @@ const Positions = () => {
     const token = localStorage.getItem("token");
 
     // Fetch user's holdings securely
-    axios.get("http://localhost:3002/allHoldings", {
+    axios.get(`${API_URL}/allHoldings`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((res) => {

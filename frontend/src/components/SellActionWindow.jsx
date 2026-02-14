@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./BuyActionWindow.css";
-
+import { API_URL } from "../config";
 const SellActionWindow = ({ uid, currentPrice, closeSellWindow }) => {
   const [stockQuantity, setStockQuantity] = useState(1);
   const [stockPrice, setStockPrice] = useState(currentPrice || 0.0);
@@ -12,7 +12,7 @@ const SellActionWindow = ({ uid, currentPrice, closeSellWindow }) => {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await axios.post("http://localhost:3002/newOrder", {
+      const response = await axios.post(`${API_URL}/newOrder`, {
         name: uid,
         qty: stockQuantity,
         price: stockPrice,
