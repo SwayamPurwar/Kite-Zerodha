@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    default: "", // Stores the Base64 image string
+    default: "", 
   },
   createdAt: {
     type: Date,
@@ -25,17 +25,17 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-// Hash password before saving
-UserSchema.pre("save", async function (next) {
+// FIXED: Removed 'next' parameter. 
+// The async function returns a promise, which Mongoose waits for automatically.
+UserSchema.pre("save", async function () {
+  // If password is not modified, return early (resolves the promise)
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next(); // Move next() inside the try block
-  } catch (error) {
-    next(error); // Pass error to the next middleware
-  }
+  
+  // Hashing logic
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
+
 module.exports = mongoose.model("User", UserSchema);
