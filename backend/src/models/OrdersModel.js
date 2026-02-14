@@ -6,10 +6,12 @@ const OrdersSchema = new mongoose.Schema({
     qty: Number,
     price: Number,
     mode: String,
-    status: { type: String, default: "Pending" } 
+    status: { type: String, default: "Pending" },
+    // NEW FIELDS FOR GTT
+    orderType: { type: String, default: "LIMIT" }, // "LIMIT" or "GTT"
+    triggerPrice: { type: Number },               // The activation price
+    isTriggered: { type: Boolean, default: false } // Has the trigger been hit?
 }, { timestamps: true });
 
-// PERFORMANCE FIX: Create an index on 'status' for fast lookups
 OrdersSchema.index({ status: 1 });
-
 module.exports = mongoose.model("Order", OrdersSchema);

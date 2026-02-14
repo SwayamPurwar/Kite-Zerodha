@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import { API_URL } from "../config";
 import axios from "axios";
 import OrderWindow from "./OrderWindow"; 
-import GeneralGraph from "./GeneralGraph"; 
+import CandleStickChart from "./CandleStickChart";
 import "./WatchList.css";
 
 const WatchList = () => {
@@ -24,7 +24,7 @@ const WatchList = () => {
   useEffect(() => {
     const socket = io(API_URL); 
 
-    axios.get(`${API_URL}/prices`, {
+    axios.get(`${API_URL}/market/prices`, {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
     }).then(res => setWatchlist(res.data));
 
@@ -86,7 +86,12 @@ const WatchList = () => {
     <div className="watchlist-sub-container">
       {isBuyWindowOpen && <OrderWindow uid={selectedStockUID} currentPrice={selectedPrice} closeWindow={handleCloseWindows} mode="BUY" />}
       {isSellWindowOpen && <OrderWindow uid={selectedStockUID} currentPrice={selectedPrice} closeWindow={handleCloseWindows} mode="SELL" />}
-      {isChartOpen && <GeneralGraph uid={selectedStockUID} closeChart={handleCloseWindows} />}
+      {isChartOpen && (
+    <CandleStickChart 
+        uid={selectedStockUID} 
+        closeChart={handleCloseWindows} 
+    />
+)}
 
       <div className="search-container">
         <input 

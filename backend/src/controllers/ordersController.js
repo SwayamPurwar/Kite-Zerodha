@@ -10,9 +10,12 @@ const orderSchema = z.object({
   qty: z.number().int().positive("Quantity must be a positive integer"),
   price: z.number().positive("Price must be positive"),
   mode: z.enum(["BUY", "SELL"]),
+  triggerPrice: z.number().optional(), // New optional field
+  orderType: z.enum(["LIMIT", "GTT"]).optional(), // New optional field
 });
 
 module.exports.createNewOrder = async (req, res) => {
+  const { name, qty, price, mode, triggerPrice, orderType } = validation.data;
   try {
     // 1. INPUT VALIDATION
     const validation = orderSchema.safeParse(req.body);
@@ -65,8 +68,11 @@ module.exports.createNewOrder = async (req, res) => {
       }
       
       const newOrder = await OrdersModel.create({
-        userId, name, qty, price, mode, status: isPending ? "Pending" : "Executed"
-      });
+  userId, name, qty, price, mode, 
+  status: "Pending", // GTT is always pending initially
+  orderType: orderType || "LIMIT",
+  triggerPrice: triggerPrice || 0
+});
 
       return res.json({ message: "Buy order placed!", newOrder, newBalance: user.walletBalance });
     } 

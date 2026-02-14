@@ -36,13 +36,20 @@ const Orders = () => {
     return () => socket.disconnect();
   }, []);
 
+  // Logic to filter orders based on the active tab
+  const filteredOrders = orders.filter(order => {
+    if (activeTab === "Regular") return order.orderType === "LIMIT" || !order.orderType;
+    if (activeTab === "GTT") return order.orderType === "GTT";
+    return true; 
+  });
+
   return (
     <div className="holdings-container">
       
       {/* Top Header & Tabs matching Kite's UI */}
       <div className="holdings-header">
         <h3 style={{ fontSize: "1.2rem", fontWeight: "400", color: "#cecece", margin: 0 }}>
-           Orders ({orders.length})
+           Orders ({filteredOrders.length})
         </h3>
         <div className="tabs" style={{ margin: "0 auto", paddingRight: "100px" }}>
           {["Regular", "GTT", "Baskets", "SIPs", "Alerts"].map(tab => (
@@ -63,10 +70,10 @@ const Orders = () => {
       </div>
 
       {/* Orders Content */}
-      {orders.length === 0 ? (
+      {filteredOrders.length === 0 ? (
         <div style={{ textAlign: "center", padding: "120px 0", color: "#888" }}>
           <i className="fa-regular fa-clock" style={{ fontSize: "3.5rem", color: "#2b2b2b", marginBottom: "20px" }}></i>
-          <p style={{ fontSize: "1.1rem" }}>You haven't placed any orders today</p>
+          <p style={{ fontSize: "1.1rem" }}>You haven't placed any {activeTab} orders today</p>
           <Link to="/" style={{ color: "#4184f3", textDecoration: "none", display: "inline-block", marginTop: "15px" }}>
              Go to Watchlist to start trading
           </Link>
@@ -82,11 +89,12 @@ const Orders = () => {
                 <th style={{ textAlign: "left" }}>Product</th>
                 <th>Qty.</th>
                 <th>Avg. price</th>
+                {activeTab === "GTT" && <th>Trigger</th>}
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              {orders.map((order, index) => {
+              {filteredOrders.map((order, index) => {
                 const isBuy = order.mode === "BUY";
                 const isPending = order.status === "Pending";
                 const timeStr = order.createdAt 
@@ -120,6 +128,9 @@ const Orders = () => {
 
                     {/* Price */}
                     <td>{order.price.toFixed(2)}</td>
+
+                    {/* Trigger Price for GTT orders */}
+                    {activeTab === "GTT" && <td>{order.triggerPrice?.toFixed(2) || "0.00"}</td>}
 
                     {/* Status Badge */}
                     <td>
