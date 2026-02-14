@@ -6,7 +6,10 @@ const OrdersSchema = new mongoose.Schema({
     qty: Number,
     price: Number,
     mode: String,
-    status: { type: String, default: "Pending" } // <-- NEW: "Pending", "Executed", or "Rejected"
-}, { timestamps: true }); // Adding timestamps so we know when the order was placed
+    status: { type: String, default: "Pending" } 
+}, { timestamps: true });
+
+// PERFORMANCE FIX: Create an index on 'status' for fast lookups
+OrdersSchema.index({ status: 1 });
 
 module.exports = mongoose.model("Order", OrdersSchema);

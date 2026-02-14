@@ -1,89 +1,112 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { API_URL } from "../config";
+import { UserContext } from "../context/UserContext";
+
 const Funds = () => {
-  const [amount, setAmount] = useState("");
-  const [balance, setBalance] = useState(Number(localStorage.getItem("walletBalance") || 0));
+  const { user, updateBalance } = useContext(UserContext);
 
   const handleTransaction = async (type) => {
-    const value = Number(amount);
-    if (!value || value <= 0) return toast.warning("Please enter a valid amount greater than 0");
+    // Basic prompt for quick demo of layout functionality
+    const amountStr = prompt(`Enter amount to ${type}:`);
+    const value = Number(amountStr);
+    
+    if (!value || value <= 0) return toast.warning("Invalid amount");
 
     const updateValue = type === "add" ? value : -value;
 
     try {
       const token = localStorage.getItem("token");
-      
-      const res = await axios.post(`${API_URL}/user/funds`, {
-        amount: updateValue
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      const newBalance = res.data.newBalance;
-      setBalance(newBalance);
-      localStorage.setItem("walletBalance", newBalance);
-      setAmount(""); 
-      
+      const res = await axios.post(`${API_URL}/user/funds`, { amount: updateValue }, { headers: { Authorization: `Bearer ${token}` } });
+      updateBalance(res.data.newBalance);
       toast.success(`Successfully ${type === "add" ? "added" : "withdrew"} ₹${value}!`);
-      
     } catch (error) {
       toast.error(error.response?.data?.message || "Transaction failed");
     }
   };
 
+  const RowItem = ({ label, value, isBlue }) => (
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "15px 0", borderBottom: "1px solid #2b2b2b", fontSize: "13px" }}>
+      <span style={{ color: "#888" }}>{label}</span>
+      <span style={{ color: isBlue ? "#4184f3" : "#cecece", fontWeight: isBlue ? "500" : "400" }}>{value}</span>
+    </div>
+  );
+
   return (
-    <div style={{ padding: "30px", maxWidth: "800px", margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <h2 style={{ color: "#444", fontWeight: "500" }}>Funds</h2>
-      </div>
+    <div style={{ padding: "30px 40px", maxWidth: "1200px", margin: "0 auto" }}>
       
-      <hr style={{ border: "none", borderBottom: "1px solid #eee", marginBottom: "30px" }} />
-
-      <div style={{ display: "flex", gap: "20px" }}>
-        {/* Left Side */}
-        <div style={{ flex: 1, border: "1px solid #eee", padding: "30px", borderRadius: "8px", backgroundColor: "#fff" }}>
-          <p style={{ fontSize: "1rem", color: "#666", marginBottom: "10px" }}>
-             <i className="fa-solid fa-coins" style={{ marginRight: "10px", color: "#f39c12" }}></i>
-             Available Margin
-          </p>
-          <h1 style={{ fontSize: "3rem", color: "#444", margin: "0", fontWeight: "400" }}>
-            ₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </h1>
-          <p style={{ color: "#888", fontSize: "0.85rem", marginTop: "10px" }}>
-            This is the total cash available in your account for trading.
-          </p>
+      {/* Top Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #2b2b2b", paddingBottom: "20px", marginBottom: "30px" }}>
+        <div style={{ display: "flex", gap: "20px", fontSize: "13px", color: "#cecece" }}>
+          <span style={{ color: "#ff5722", borderBottom: "2px solid #ff5722", paddingBottom: "20px", marginBottom: "-22px", fontWeight: "500" }}>Funds</span>
         </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+          <span style={{ fontSize: "11px", color: "#888" }}>Instant, zero-cost fund transfers with UPI</span>
+          <button onClick={() => handleTransaction("add")} style={{ backgroundColor: "#4caf50", color: "#fff", border: "none", padding: "8px 15px", borderRadius: "3px", cursor: "pointer", fontSize: "13px", fontWeight: "500" }}>Add funds</button>
+          <button onClick={() => handleTransaction("withdraw")} style={{ backgroundColor: "#4184f3", color: "#fff", border: "none", padding: "8px 15px", borderRadius: "3px", cursor: "pointer", fontSize: "13px", fontWeight: "500" }}>Withdraw</button>
+        </div>
+      </div>
 
-        {/* Right Side */}
-        <div style={{ flex: 1, border: "1px solid #eee", padding: "30px", borderRadius: "8px", backgroundColor: "#fbfbfb" }}>
-          <h3 style={{ fontSize: "1.1rem", color: "#444", marginBottom: "20px", fontWeight: "500" }}>Manage Funds</h3>
-          
-          <input 
-            type="number" 
-            placeholder="Enter amount (₹)" 
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            style={{ 
-              width: "100%", padding: "12px", border: "1px solid #ddd", 
-              borderRadius: "4px", fontSize: "16px", marginBottom: "20px", outline: "none" 
-            }}
-          />
-
-          <div style={{ display: "flex", gap: "10px" }}>
-            <button 
-              onClick={() => handleTransaction("add")}
-              style={{ flex: 1, backgroundColor: "#4caf50", color: "#fff", padding: "12px", border: "none", borderRadius: "4px", fontSize: "15px", cursor: "pointer", fontWeight: "bold" }}>
-              Add Funds
-            </button>
-            <button 
-              onClick={() => handleTransaction("withdraw")}
-              style={{ flex: 1, backgroundColor: "#df514d", color: "#fff", padding: "12px", border: "none", borderRadius: "4px", fontSize: "15px", cursor: "pointer", fontWeight: "bold" }}>
-              Withdraw
-            </button>
+      {/* Main Grid */}
+      <div style={{ display: "flex", gap: "80px" }}>
+        
+        {/* Equity Column */}
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
+             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                 <i className="fa-solid fa-chart-pie" style={{ color: "#888" }}></i>
+                 <h3 style={{ fontSize: "1rem", color: "#cecece", fontWeight: "400" }}>Equity</h3>
+             </div>
+             <span style={{ fontSize: "11px", color: "#4184f3", cursor: "pointer" }}><i className="fa-solid fa-circle-info"></i> View statement</span>
           </div>
+
+          <RowItem label="Available margin" value={Number(user.walletBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})} isBlue={true} />
+          <RowItem label="Used margin" value="0.00" />
+          <RowItem label="Available cash" value={Number(user.walletBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})} />
+          
+          <div style={{ height: "20px" }}></div>
+          
+          <RowItem label="Opening balance" value={Number(user.walletBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})} />
+          <RowItem label="Payin" value="0.00" />
+          <RowItem label="Payout" value="0.00" />
+          <RowItem label="SPAN" value="0.00" />
+          <RowItem label="Delivery margin" value="0.00" />
+          <RowItem label="Exposure" value="0.00" />
+          <RowItem label="Options premium" value="0.00" />
+          
+          <div style={{ height: "20px" }}></div>
+          
+          <RowItem label="Collateral (Liquid funds)" value="0.00" />
+          <RowItem label="Collateral (Equity)" value="0.00" />
+          <RowItem label="Total collateral" value="0.00" />
         </div>
+
+        {/* Commodity Column */}
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
+             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                 <i className="fa-solid fa-droplet" style={{ color: "#888" }}></i>
+                 <h3 style={{ fontSize: "1rem", color: "#cecece", fontWeight: "400" }}>Commodity</h3>
+             </div>
+             <span style={{ fontSize: "11px", color: "#4184f3", cursor: "pointer" }}><i className="fa-solid fa-circle-info"></i> View statement</span>
+          </div>
+
+          <RowItem label="Available margin" value="0.00" />
+          <RowItem label="Used margin" value="0.00" />
+          <RowItem label="Available cash" value="0.00" />
+          
+          <div style={{ height: "20px" }}></div>
+          
+          <RowItem label="Opening balance" value="0.00" />
+          <RowItem label="Payin" value="0.00" />
+          <RowItem label="Payout" value="0.00" />
+          <RowItem label="SPAN" value="0.00" />
+          <RowItem label="Delivery margin" value="0.00" />
+          <RowItem label="Exposure" value="0.00" />
+          <RowItem label="Options premium" value="0.00" />
+        </div>
+
       </div>
     </div>
   );

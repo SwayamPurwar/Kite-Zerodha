@@ -42,10 +42,14 @@ module.exports.login = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
+    if (!process.env.JWT_SECRET) {
+       throw new Error("JWT_SECRET is missing in environment variables.");
+    }
+
     // 3. Create Token
     const token = jwt.sign(
       { id: user._id }, 
-      process.env.JWT_SECRET || "fallback_secret_key", 
+      process.env.JWT_SECRET, 
       { expiresIn: "1d" }
     );
 

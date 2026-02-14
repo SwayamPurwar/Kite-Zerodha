@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./responsive.css";
+
 // Components
 import TopBar from "./components/TopBar";
 import WatchList from "./components/WatchList";
@@ -13,16 +14,20 @@ import Dashboard from "./pages/Dashboard";
 import Holdings from "./pages/Holdings";
 import Orders from "./pages/Orders";
 import Funds from "./pages/Funds";
-import Account from "./pages/Account"; // <-- Import Account
+import Account from "./pages/Account"; 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import { UserContext } from "./context/UserContext";
 
 function App() {
-  const isAuthenticated = !!localStorage.getItem("token");
+  const { isAuthenticated, loading } = useContext(UserContext);
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#444' }}>Loading Kite...</div>;
+  }
 
   return (
     <BrowserRouter>
-      {/* ToastContainer must be here so it works across all pages */}
       <ToastContainer position="bottom-right" autoClose={2000} hideProgressBar={false} theme="colored" />
       
       {isAuthenticated && <TopBar />}
@@ -46,7 +51,7 @@ function App() {
                     <Route path="/holdings" element={<Holdings />} />
                     <Route path="/positions" element={<Positions />} />
                     <Route path="/funds" element={<Funds />} />
-                    <Route path="/account" element={<Account />} /> {/* <-- Add Account Route */}
+                    <Route path="/account" element={<Account />} /> 
                   </Routes>
                 </div>
               </div>

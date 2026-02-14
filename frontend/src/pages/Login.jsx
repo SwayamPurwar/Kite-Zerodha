@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./Auth.css";
 import { API_URL } from "../config";
+import { UserContext } from "../context/UserContext";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const { login } = useContext(UserContext);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -17,21 +20,11 @@ const Login = () => {
         password,
       });
       
-      // IMPORTANT: Clear any leftover avatar from a previous user's session
       localStorage.removeItem("avatar");
-      
-      // Save the new user's secure details
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("walletBalance", res.data.walletBalance);
-      
-      // Show success toast
+      login(res.data.token, res.data.walletBalance);
       toast.success(res.data.message);
       
-      // Wait 1.5 seconds for the toast to show, then redirect and reload the app state
-      setTimeout(() => {
-        navigate("/"); 
-        window.location.reload(); 
-      }, 1500);
+      setTimeout(() => { navigate("/"); }, 1000);
       
     } catch (error) {
       toast.error(error.response?.data?.message || "Invalid credentials");

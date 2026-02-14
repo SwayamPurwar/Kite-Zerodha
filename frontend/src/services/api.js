@@ -1,7 +1,7 @@
 import axios from "axios";
-
+import { API_URL } from "../config"; // Import correctly
 // Fixed the API URL to match your backend index.js routing
-const API_URL = "http://localhost:3002"; 
+
 
 export const getHoldings = async () => {
   try {
