@@ -18,7 +18,7 @@ module.exports.signup = async (req, res) => {
     // Create the new user
     const newUser = new UserModel({
       email,
-      password: hashedPassword,
+      password,
     });
 
     await newUser.save();
