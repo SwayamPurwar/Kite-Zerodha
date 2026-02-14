@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -7,23 +7,35 @@ import { API_URL } from "../config";
 import { UserContext } from "../context/UserContext";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState(""); 
   const [otp, setOtp] = useState("");
-  const [step, setStep] = useState(1); // Step 1: Email, Step 2: OTP
+  const [step, setStep] = useState(1); 
+  const [timer, setTimer] = useState(0); 
   const [isLoading, setIsLoading] = useState(false);
   
   const navigate = useNavigate();
   const { login } = useContext(UserContext);
 
+  useEffect(() => {
+    let interval;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
   const handleSendOtp = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setIsLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/auth/send-otp`, { email });
+      const res = await axios.post(`${API_URL}/auth/send-otp`, { identifier });
       toast.success(res.data.message);
-      setStep(2); // Move to OTP screen
+      setStep(2); 
+      setTimer(60); 
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to send OTP");
+      toast.error(error.response?.data?.message || "User not found");
     } finally {
       setIsLoading(false);
     }
@@ -31,13 +43,13 @@ const Login = () => {
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsLoading(true); // Changed to true to show loading state correctly
     try {
-      const res = await axios.post(`${API_URL}/auth/verify-otp`, { email, otp });
+      const res = await axios.post(`${API_URL}/auth/verify-otp`, { identifier, otp });
       
       localStorage.removeItem("avatar");
       login(res.data.token, res.data.walletBalance);
-      toast.success(res.data.message);
+      toast.success("Welcome back to Kite!");
       
       setTimeout(() => { navigate("/"); }, 1000);
       
@@ -61,10 +73,12 @@ const Login = () => {
         {step === 1 ? (
             <form className="auth-form" onSubmit={handleSendOtp}>
               <input 
-                type="email" 
-                placeholder="Email Address" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
+                type="text" 
+                placeholder="Email or Mobile Number" 
+                value={identifier} 
+                onChange={(e) => setIdentifier(e.target.value)} 
+                disabled={isLoading} // Prevent typing while processing
+                autoFocus // Automatically focus for better UX
                 required 
               />
               <button type="submit" className="auth-btn" disabled={isLoading}>
@@ -74,26 +88,41 @@ const Login = () => {
         ) : (
             <form className="auth-form" onSubmit={handleVerifyOtp}>
               <p style={{ color: "#888", fontSize: "13px", margin: "0 0 15px 0" }}>
-                  OTP sent to <strong>{email}</strong>
+                  OTP sent to <strong>{identifier}</strong>
               </p>
               <input 
                 type="text" 
                 placeholder="Enter 6-digit OTP" 
                 value={otp} 
-                onChange={(e) => setOtp(e.target.value)} 
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} 
                 maxLength="6"
+                disabled={isLoading}
+                autoFocus
                 required 
                 style={{ textAlign: "center", letterSpacing: "5px", fontSize: "18px" }}
               />
               <button type="submit" className="auth-btn" disabled={isLoading}>
                 {isLoading ? "Verifying..." : "Verify & Login"}
               </button>
+
+              <div style={{ marginTop: "20px", fontSize: "13px", textAlign: "center" }}>
+                  {timer > 0 ? (
+                    <span style={{ color: "#888" }}>Resend OTP in <strong>{timer}s</strong></span>
+                  ) : (
+                    <span 
+                      onClick={handleSendOtp} 
+                      style={{ color: "#4184f3", cursor: "pointer", fontWeight: "bold" }}
+                    >
+                      Resend OTP
+                    </span>
+                  )}
+              </div>
               
               <span 
-                onClick={() => setStep(1)} 
-                style={{ color: "#4184f3", fontSize: "12px", cursor: "pointer", marginTop: "15px", display: "inline-block" }}
+                onClick={() => { setStep(1); setOtp(""); }} 
+                style={{ color: "#888", fontSize: "12px", cursor: "pointer", marginTop: "15px", display: "inline-block" }}
               >
-                Change Email
+                ← Use different Email/Mobile
               </span>
             </form>
         )}
