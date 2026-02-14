@@ -105,3 +105,22 @@ module.exports.updateAvatar = async (req, res) => {
     res.status(500).json({ message: "Error updating avatar", error });
   }
 };
+
+module.exports.updateProfile = async (req, res) => {
+  try {
+    const { name, phone } = req.body;
+    const userId = req.user.id;
+
+    // Find the user and update their name and phone
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      { name, phone },
+      { new: true } // Returns the updated document
+    ).select("-password");
+
+    res.json({ message: "Profile updated successfully!", user: updatedUser });
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+    res.status(500).json({ message: "Error updating profile", error: error.message });
+  }
+};
