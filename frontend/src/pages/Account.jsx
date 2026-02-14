@@ -55,7 +55,7 @@ const Account = () => {
       const base64Image = await convertToBase64(file);
       const token = localStorage.getItem("token");
 
-      const res = await axios.put("http://localhost:3002/user/avatar", 
+      const res = await axios.put(`${API_URL}/user/avatar`, 
         { avatar: base64Image }, 
         { headers: { Authorization: `Bearer ${token}` } }
       );
