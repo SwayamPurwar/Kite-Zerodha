@@ -11,14 +11,23 @@ const Funds = () => {
   const [isWindowOpen, setIsWindowOpen] = useState(false);
   const [windowType, setWindowType] = useState("deposit");
 
+  // 🔑 REPLACE WITH YOUR RAZORPAY TEST KEY ID
+  const RAZORPAY_KEY_ID = "rzp_test_SGCEttXCwiSkkg"; 
+
   useEffect(() => {
     fetchTransactions();
+    // Load Razorpay SDK
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
   }, [user.walletBalance]); 
 
   const fetchTransactions = async () => {
     try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${API_URL}/user/transactions`, {
+        // Updated endpoint to payment route
+        const res = await axios.get(`${API_URL}/payment/transactions`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         setTransactions(res.data);
@@ -32,17 +41,79 @@ const Funds = () => {
     setIsWindowOpen(true);
   };
 
+  // ✅ Central Transaction Handler
   const handleTransaction = async (amount, type) => {
-    const value = type === "deposit" ? Number(amount) : -Number(amount);
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.post(`${API_URL}/user/funds`, { amount: value }, { headers: { Authorization: `Bearer ${token}` } });
-      updateBalance(res.data.newBalance);
-      toast.success(`Successfully ${type === "deposit" ? "added" : "withdrew"} ₹${amount}`);
-      setIsWindowOpen(false);
-      fetchTransactions(); 
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Transaction failed");
+    const token = localStorage.getItem("token");
+
+    // --- CASE 1: WITHDRAW (Standard API Call) ---
+    if (type === "withdraw") {
+      try {
+        const res = await axios.post(`${API_URL}/payment/withdraw`, 
+          { amount }, 
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        updateBalance(res.data.newBalance);
+        toast.success(`Successfully withdrew ₹${amount}`);
+        setIsWindowOpen(false);
+        fetchTransactions();
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Withdrawal failed");
+      }
+      return;
+    }
+
+    // --- CASE 2: DEPOSIT (Razorpay Flow) ---
+    if (type === "deposit") {
+      try {
+        // 1. Create Order
+        const { data: order } = await axios.post(`${API_URL}/payment/create-order`, 
+          { amount }, 
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // 2. Configure Razorpay
+        const options = {
+          key: RAZORPAY_KEY_ID,
+          amount: order.amount,
+          currency: "INR",
+          name: "Kite Zerodha",
+          description: "Add Funds to Wallet",
+          order_id: order.id,
+          handler: async function (response) {
+            // 3. Verify Payment on Success
+            try {
+              const verifyRes = await axios.post(`${API_URL}/payment/verify-payment`, {
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  amount: amount
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              
+              updateBalance(verifyRes.data.newBalance);
+              toast.success(`Successfully added ₹${amount}`);
+              setIsWindowOpen(false);
+              fetchTransactions();
+            } catch (err) {
+              toast.error("Payment Verification Failed");
+            }
+          },
+          prefill: {
+            name: user.username || "User",
+            email: "user@example.com",
+            contact: "9999999999",
+          },
+          theme: { color: "#4caf50" },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to initiate payment");
+      }
     }
   };
 
@@ -94,10 +165,7 @@ const Funds = () => {
           </div>
 
           <RowItem label="Available margin" value={Number(user.walletBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})} isBlue={true} />
-          
-          {/* UPDATED: Dynamic Used Margin */}
           <RowItem label="Used margin" value={Number(user.usedMargin || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})} />
-          
           <RowItem label="Available cash" value={Number(user.walletBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})} />
           <div style={{ height: "20px" }}></div>
           <RowItem label="Opening balance" value={Number(user.walletBalance + (user.usedMargin || 0)).toLocaleString('en-IN', {minimumFractionDigits: 2})} />
@@ -140,8 +208,8 @@ const Funds = () => {
             <tbody>
               {transactions.map((txn, index) => (
                 <tr key={index}>
-                  <td style={{ textAlign: "left", color: "#888" }}>{new Date(txn.createdAt).toLocaleString()}</td>
-                  <td style={{ textAlign: "left", color: "#cecece" }}>{txn.transactionId}</td>
+                  <td style={{ textAlign: "left", color: "#888" }}>{new Date(txn.date || txn.createdAt).toLocaleString()}</td>
+                  <td style={{ textAlign: "left", color: "#cecece" }}>{txn.transactionId || "-"}</td>
                   <td style={{ textAlign: "left" }}>
                       <span style={{ 
                           color: txn.type === "DEPOSIT" ? "#4caf50" : "#df514d", 

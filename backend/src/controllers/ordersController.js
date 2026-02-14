@@ -15,7 +15,7 @@ const orderSchema = z.object({
 });
 
 module.exports.createNewOrder = async (req, res) => {
-  const { name, qty, price, mode, triggerPrice, orderType } = validation.data;
+ 
   try {
     // 1. INPUT VALIDATION
     const validation = orderSchema.safeParse(req.body);
@@ -23,7 +23,7 @@ module.exports.createNewOrder = async (req, res) => {
       return res.status(400).json({ message: validation.error.errors[0].message });
     }
 
-    const { name, qty, price, mode } = validation.data;
+    const { name, qty, price, mode, triggerPrice, orderType } = validation.data;
     const userId = req.user.id;
     const totalCost = qty * price;
 
