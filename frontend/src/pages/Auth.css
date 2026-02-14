@@ -4,23 +4,25 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #f9f9f9;
+  background-color: #121212; /* Dark Mode Background */
 }
 
 .auth-box {
-  background: white;
+  background: #191919; /* Card Background */
   padding: 40px;
-  border-radius: 8px;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 4px; /* Slightly sharper corners like Kite */
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3); /* Softer, darker shadow */
+  border: 1px solid #2b2b2b; /* Subtle border */
   width: 100%;
   max-width: 400px;
   text-align: center;
 }
 
 .auth-box h2 {
-  color: #444;
-  margin-bottom: 20px;
+  color: #cecece; /* Primary Text */
+  margin-bottom: 25px;
   font-weight: 500;
+  font-size: 1.5rem;
 }
 
 .auth-form {
@@ -30,27 +32,37 @@
 }
 
 .auth-form input {
-  padding: 12px;
-  border: 1px solid #ddd;
+  padding: 12px 15px;
+  background-color: #121212; /* Input Background */
+  border: 1px solid #2b2b2b; /* Input Border */
   border-radius: 4px;
   font-size: 14px;
   outline: none;
+  color: #cecece; /* Input Text */
+  transition: border 0.2s;
 }
 
 .auth-form input:focus {
-  border-color: #4184f3;
+  border-color: #4184f3; /* Kite Blue Focus */
+  background-color: #1e1e1e;
+}
+
+.auth-form input::placeholder {
+  color: #666;
 }
 
 .auth-btn {
-  background-color: #df514d;
+  background-color: #df514d; /* Kite Red */
   color: white;
   padding: 12px;
   border: none;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   transition: background 0.2s;
+  margin-top: 10px;
 }
 
 .auth-btn:hover {
@@ -58,13 +70,19 @@
 }
 
 .auth-link {
-  margin-top: 15px;
+  margin-top: 25px;
   font-size: 13px;
-  color: #888;
+  color: #888; /* Muted Text */
 }
 
 .auth-link span {
-  color: #4184f3;
+  color: #4184f3; /* Kite Blue Link */
   cursor: pointer;
-  text-decoration: underline;
+  text-decoration: none;
+  font-weight: 500;
+  margin-left: 5px;
+}
+
+.auth-link span:hover {
+  color: #2a6cd9;
 }

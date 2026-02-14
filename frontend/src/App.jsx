@@ -22,20 +22,29 @@ import { UserContext } from "./context/UserContext";
 function App() {
   const { isAuthenticated, loading } = useContext(UserContext);
 
+  // 1. Prevent any rendering until we know if the user is logged in
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#444' }}>Loading Kite...</div>;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#444' }}>
+        Loading Kite...
+      </div>
+    );
   }
 
   return (
     <BrowserRouter>
       <ToastContainer position="bottom-right" autoClose={2000} hideProgressBar={false} theme="colored" />
       
+      {/* 2. TopBar is ONLY visible when logged in */}
       {isAuthenticated && <TopBar />}
       
       <Routes>
+        {/* --- PUBLIC ROUTES (Accessible only when logged OUT) --- */}
+        {/* If a logged-in user tries to hit /login, force them to Dashboard */}
         <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
         <Route path="/signup" element={!isAuthenticated ? <Signup /> : <Navigate to="/" />} />
 
+        {/* --- PROTECTED ROUTES (Accessible only when logged IN) --- */}
         <Route
           path="/*"
           element={
@@ -52,10 +61,13 @@ function App() {
                     <Route path="/positions" element={<Positions />} />
                     <Route path="/funds" element={<Funds />} />
                     <Route path="/account" element={<Account />} /> 
+                    {/* Catch-all for inside the app: Redirect unknown internal paths to Dashboard */}
+                    <Route path="*" element={<Navigate to="/" />} />
                   </Routes>
                 </div>
               </div>
             ) : (
+              /* 3. The Gatekeeper: If not logged in, ANY attempt to access these pages sends you to Login */
               <Navigate to="/login" />
             )
           }

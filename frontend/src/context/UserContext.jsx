@@ -11,6 +11,7 @@ export const UserProvider = ({ children }) => {
     email: "",
     name: ""
   });
+  // Initialize auth state based on presence of token
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
 
@@ -36,6 +37,7 @@ export const UserProvider = ({ children }) => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
+        // If no token exists, we are not loading anymore, just regular guest/logged out state
         if (!token) {
           setLoading(false);
           return;
@@ -46,16 +48,23 @@ export const UserProvider = ({ children }) => {
         });
         
         setUser(res.data);
+        // Sync local storage with fresh data from server
         localStorage.setItem("walletBalance", res.data.walletBalance);
         if (res.data.avatar) {
           localStorage.setItem("avatar", res.data.avatar);
         }
       } catch (error) {
         console.error("Failed to load user profile");
-        if (error.response && error.response.status === 401) {
-          logout();
-        }
+        
+        // --- FIX START ---
+        // If the profile fetch fails for ANY reason (401, 500, Network Error), 
+        // we must log the user out. Otherwise, isAuthenticated remains true, 
+        // but we have no user data, causing the app to hang or crash.
+        logout();
+        // --- FIX END ---
+        
       } finally {
+        // Ensure loading screen is always removed
         setLoading(false);
       }
     };

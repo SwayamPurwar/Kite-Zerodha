@@ -3,10 +3,13 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "./Auth.css";
-import { API_URL } from "../config"; // IMPORT YOUR DYNAMIC URL
+import { API_URL } from "../config";
+
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const navigate = useNavigate();
 
   const handleSignup = async (e) => {
@@ -15,15 +18,13 @@ const Signup = () => {
       const res = await axios.post(`${API_URL}/auth/signup`, {
         email,
         password,
+        name,
+        phone,
       });
       
-      // IMPORTANT: Clear any leftover avatar from a previous user's session
       localStorage.removeItem("avatar");
-      
-      // Show success toast
       toast.success(res.data.message);
       
-      // Wait 1.5 seconds for the toast to show, then redirect to login
       setTimeout(() => {
         navigate("/login");
       }, 1500); 
@@ -36,9 +37,27 @@ const Signup = () => {
   return (
     <div className="auth-container">
       <div className="auth-box">
-        <img src="https://zerodha.com/static/images/logo.svg" alt="Logo" style={{ width: "150px", marginBottom: "20px" }} />
+        <img 
+          src="https://zerodha.com/static/images/logo.svg" 
+          alt="Logo" 
+          style={{ width: "140px", marginBottom: "30px", filter: "invert(1) opacity(0.8)" }} 
+        />
         <h2>Sign up to Kite</h2>
         <form className="auth-form" onSubmit={handleSignup}>
+          <input 
+            type="text" 
+            placeholder="Full Name" 
+            value={name} 
+            onChange={(e) => setName(e.target.value)} 
+            required 
+          />
+          <input 
+            type="text" 
+            placeholder="Phone Number" 
+            value={phone} 
+            onChange={(e) => setPhone(e.target.value)} 
+            required 
+          />
           <input 
             type="email" 
             placeholder="Email Address" 
@@ -56,7 +75,7 @@ const Signup = () => {
           <button type="submit" className="auth-btn">Sign Up</button>
         </form>
         <p className="auth-link">
-          Already have an account? <span onClick={() => navigate("/login")}>Login here</span>
+          Already have an account? <span onClick={() => navigate("/login")}>Login</span>
         </p>
       </div>
     </div>

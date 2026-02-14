@@ -11,6 +11,14 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, "Password is required"],
   },
+  name: {
+    type: String,
+    required: [true, "Your name is required"],
+  },
+  phone: {
+    type: String,
+    required: [true, "Phone number is required"],
+  },
   walletBalance: {
     type: Number,
     default: 100000,
@@ -25,15 +33,10 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-// FIXED: Removed 'next' parameter. 
-// The async function returns a promise, which Mongoose waits for automatically.
 UserSchema.pre("save", async function () {
-  // If password is not modified, return early (resolves the promise)
   if (!this.isModified("password")) {
     return;
   }
-  
-  // Hashing logic
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });

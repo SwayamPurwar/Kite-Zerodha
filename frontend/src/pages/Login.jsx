@@ -34,7 +34,12 @@ const Login = () => {
   return (
     <div className="auth-container">
       <div className="auth-box">
-        <img src="https://zerodha.com/static/images/logo.svg" alt="Logo" style={{ width: "150px", marginBottom: "20px" }} />
+        <img 
+          src="https://zerodha.com/static/images/logo.svg" 
+          alt="Logo" 
+          // Added filter to make logo white for dark mode
+          style={{ width: "140px", marginBottom: "30px", filter: "invert(1) opacity(0.8)" }} 
+        />
         <h2>Login to Kite</h2>
         <form className="auth-form" onSubmit={handleLogin}>
           <input 
@@ -54,7 +59,7 @@ const Login = () => {
           <button type="submit" className="auth-btn">Login</button>
         </form>
         <p className="auth-link">
-          Don't have an account? <span onClick={() => navigate("/signup")}>Sign up here</span>
+          Don't have an account? <span onClick={() => navigate("/signup")}>Sign up</span>
         </p>
       </div>
     </div>

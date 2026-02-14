@@ -5,7 +5,8 @@ import axios from "axios";
 import { API_URL } from "../config";
 
 const Account = () => {
-  const { user, setUser } = useContext(UserContext);
+  // 1. Destructure 'logout' from the context
+  const { user, setUser, logout } = useContext(UserContext);
   const fileInputRef = useRef(null); 
 
   const handleImageUpload = async (e) => {
@@ -35,6 +36,13 @@ const Account = () => {
   );
 
   const formattedName = user.name ? user.name : (user.email ? user.email.split('@')[0] : "User");
+
+  // 2. Create a handler to manage the logout process
+  const handleLogout = () => {
+    logout(); // This clears the token and updates state to false
+    // Note: No need to manually navigate to /login here. 
+    // App.jsx will detect isAuthenticated is false and automatically redirect.
+  };
 
   return (
     <div style={{ padding: "40px", maxWidth: "900px", margin: "0 auto" }}>
@@ -77,7 +85,7 @@ const Account = () => {
             <InfoRow label="Support code" value={<span><i className="fa-solid fa-eye"></i> View</span>} isBlue={true} />
             <InfoRow label="E-mail" value={user.email} />
             <InfoRow label="PAN" value="*086J" />
-            <InfoRow label="Phone" value="*0688" />
+            <InfoRow label="Phone" value={user.phone || "*0688"} />
             <InfoRow label="Demat (BO)" value="1208160146440501" isBlue={true} />
             <InfoRow label="Segments" value="MCX, NCO, NSE, CDS, BCD, BSE, MF, BFO, NFO" isBlue={true} />
             <InfoRow label="Demat authorisation" value="eDIS" isBlue={true} />
@@ -110,7 +118,11 @@ const Account = () => {
                   <li>Kite Web</li>
                </ul>
                
-               <button onClick={() => window.location.href = '/login'} style={{ marginTop: "30px", backgroundColor: "transparent", color: "#df514d", border: "1px solid #df514d", padding: "8px 20px", borderRadius: "3px", cursor: "pointer", fontSize: "12px", width: "100%" }}>
+               {/* 3. Updated Button to call handleLogout */}
+               <button 
+                  onClick={handleLogout} 
+                  style={{ marginTop: "30px", backgroundColor: "transparent", color: "#df514d", border: "1px solid #df514d", padding: "8px 20px", borderRadius: "3px", cursor: "pointer", fontSize: "12px", width: "100%" }}
+               >
                   Logout
                </button>
             </div>

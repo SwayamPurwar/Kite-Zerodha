@@ -4,18 +4,18 @@ const jwt = require("jsonwebtoken");
 
 module.exports.signup = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name, phone } = req.body; // Destructure new fields
 
-    // 1. Check for existing user
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // 2. Create user (DO NOT hash here, let the Model handle it)
     const newUser = new UserModel({
       email,
-      password, // Pass plain password; Model hashes it on .save()
+      password,
+      name,  // Save Name
+      phone, // Save Phone
     });
 
     await newUser.save();
