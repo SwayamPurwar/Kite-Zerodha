@@ -74,7 +74,7 @@ const TopBar = () => {
           <div className="avatar">
             {user.avatar ? <img src={user.avatar} alt="User" style={{ width: "100%", height: "100%", borderRadius:"50%", objectFit: "cover" }} /> : initials}
           </div>
-          <div className="userid">{user.email ? user.email.split('@')[0].toUpperCase() : "USER"}</div>
+          <div className="userid">{user.name ? user.name.toUpperCase() : "USER"}</div>
         </div>
       </Link>
     </div>
