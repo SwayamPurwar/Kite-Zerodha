@@ -9,11 +9,17 @@ const UserSchema = new mongoose.Schema({
   walletBalance: { type: Number, default: 100000 },
   avatar: { type: String, default: "" },
   
-  // --- NEW OTP FIELDS ---
+  // --- OTP FIELDS ---
   otp: { type: String, default: null },
   otpExpiry: { type: Date, default: null },
-  // ----------------------
   
+  // --- ✅ NEW: Personalized Watchlist ---
+  watchlist: [{ 
+    type: String, 
+    trim: true, 
+    uppercase: true 
+  }],
+
   createdAt: { type: Date, default: new Date() },
 });
 

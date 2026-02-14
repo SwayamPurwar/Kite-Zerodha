@@ -1,13 +1,27 @@
 const router = require("express").Router();
-const { getLivePrices, getHistoricalData, searchStocks } = require("../controllers/marketController");
+const { 
+  getLivePrices, 
+  getHistoricalData, 
+  searchStocks,
+  getUserWatchlist, 
+  addToWatchlist,
+  removeFromWatchlist // ✅ Import
+} = require("../controllers/marketController");
 
-// The live prices route (loads default + dynamically tracked stocks)
+const authMiddleware = require("../middleware/authMiddleware");
+
+// Live prices
 router.get("/prices", getLivePrices);
 
-// NEW: Dynamic search route
+// Search
 router.get("/search", searchStocks);
 
-// The historical data route for the Candlestick chart
+// Personalized Watchlist Routes (Protected)
+router.get("/my-watchlist", authMiddleware, getUserWatchlist);
+router.post("/watchlist/add", authMiddleware, addToWatchlist);
+router.post("/watchlist/remove", authMiddleware, removeFromWatchlist); // ✅ New Route
+
+// Historical Data
 router.get("/history/:symbol", getHistoricalData);
 
 module.exports = router;

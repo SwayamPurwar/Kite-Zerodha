@@ -41,10 +41,8 @@ module.exports.signup = async (req, res) => {
     });
     await newUser.save();
 
-    // TERMINAL LOG
     console.log(`\n🔑 [SIGNUP] OTP FOR ${name}: ${otp}\n`);
 
-    // CHANNEL 1: EMAIL
     try {
       await transporter.sendMail({
         from: `"Kite Zerodha" <${process.env.EMAIL_USER}>`,
@@ -55,7 +53,6 @@ module.exports.signup = async (req, res) => {
       console.log(`✅ Signup Email sent to ${email}`);
     } catch (err) { console.log("❌ Email failed:", err.message); }
 
-    // CHANNEL 2: SMS
     if (twilioClient) {
       try {
         await twilioClient.messages.create({
@@ -91,10 +88,8 @@ module.exports.sendOtp = async (req, res) => {
     user.otpExpiry = Date.now() + 10 * 60 * 1000;
     await user.save();
 
-    // TERMINAL LOG
     console.log(`\n🔑 [LOGIN] OTP FOR ${user.name}: ${otp}\n`);
 
-    // CHANNEL 1: EMAIL (Always sends to the email on file)
     try {
       await transporter.sendMail({
         from: `"Kite Zerodha" <${process.env.EMAIL_USER}>`,
@@ -105,7 +100,6 @@ module.exports.sendOtp = async (req, res) => {
       console.log(`✅ Login Email sent to ${user.email}`);
     } catch (err) { console.log("❌ Email failed:", err.message); }
 
-    // CHANNEL 2: SMS (Only if user has a phone)
     if (twilioClient && user.phone) {
       try {
         await twilioClient.messages.create({
@@ -124,7 +118,7 @@ module.exports.sendOtp = async (req, res) => {
 };
 
 /**
- * 3. VERIFY OTP
+ * 3. VERIFY OTP & SEND LOGIN ALERT
  */
 module.exports.verifyOtp = async (req, res) => {
   try {
@@ -135,9 +129,43 @@ module.exports.verifyOtp = async (req, res) => {
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    // Verify the OTP
     if (otp === "123456" || (user.otp === otp && user.otpExpiry > Date.now())) {
       user.otp = null;
       await user.save();
+
+      // --- 🔔 NEW: Send Real-Time Login Alert Email ---
+      try {
+        // Capture basic device info (if available)
+        const loginTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+        const userAgent = req.headers['user-agent'] || 'Unknown Device';
+
+        await transporter.sendMail({
+          from: `"Kite Security" <${process.env.EMAIL_USER}>`,
+          to: user.email, // Sends to the user's registered email
+          subject: '⚠️ Login Alert: New sign-in to your Kite account',
+          html: `
+            <div style="font-family: Arial, sans-serif; color: #333;">
+              <h2 style="color: #df514d;">New Login Detected</h2>
+              <p>Hello <b>${user.name}</b>,</p>
+              <p>We noticed a new login to your Kite Zerodha account.</p>
+              <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                <p style="margin: 5px 0;"><b>🕒 Time:</b> ${loginTime}</p>
+                <p style="margin: 5px 0;"><b>📱 Device:</b> ${userAgent}</p>
+                <p style="margin: 5px 0;"><b>📧 Email ID:</b> ${user.email}</p>
+              </div>
+              <p>If this was you, you can ignore this email.</p>
+              <p>If you did not authorize this login, please contact support immediately.</p>
+            </div>
+          `
+        });
+        console.log(`✅ Login Alert sent to ${user.email}`);
+      } catch (alertError) {
+        console.error("❌ Failed to send login alert:", alertError.message);
+        // We do NOT stop the login process if the email fails
+      }
+      // ---------------------------------------------------
+
       const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
       return res.json({ message: "Login success!", token, walletBalance: user.walletBalance });
     }
