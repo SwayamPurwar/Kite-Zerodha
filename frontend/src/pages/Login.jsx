@@ -43,7 +43,7 @@ const Login = () => {
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Changed to true to show loading state correctly
+    setIsLoading(true);
     try {
       const res = await axios.post(`${API_URL}/auth/verify-otp`, { identifier, otp });
       
@@ -73,12 +73,12 @@ const Login = () => {
         {step === 1 ? (
             <form className="auth-form" onSubmit={handleSendOtp}>
               <input 
-                type="text" 
-                placeholder="Email or Mobile Number" 
+                type="email" // Changed input type to email
+                placeholder="Email Address" // Changed placeholder
                 value={identifier} 
                 onChange={(e) => setIdentifier(e.target.value)} 
-                disabled={isLoading} // Prevent typing while processing
-                autoFocus // Automatically focus for better UX
+                disabled={isLoading} 
+                autoFocus 
                 required 
               />
               <button type="submit" className="auth-btn" disabled={isLoading}>
@@ -122,7 +122,7 @@ const Login = () => {
                 onClick={() => { setStep(1); setOtp(""); }} 
                 style={{ color: "#888", fontSize: "12px", cursor: "pointer", marginTop: "15px", display: "inline-block" }}
               >
-                ← Use different Email/Mobile
+                ← Use different Email
               </span>
             </form>
         )}

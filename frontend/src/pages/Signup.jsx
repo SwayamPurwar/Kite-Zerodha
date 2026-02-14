@@ -32,7 +32,9 @@ const Signup = () => {
 
   const handleSignupStep1 = async (e) => {
     if (e) e.preventDefault();
+    // Validations
     if(phone.length !== 10) return toast.error("Please enter a valid 10-digit phone number");
+    if(!email.includes("@")) return toast.error("Please enter a valid email address");
 
     setIsLoading(true);
     try {
@@ -51,9 +53,9 @@ const Signup = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // ✅ FIX: Send 'identifier' instead of 'phone' to match backend
+      // ✅ CHANGED: Send 'email' as identifier instead of 'phone'
       const res = await axios.post(`${API_URL}/auth/verify-otp`, { 
-        identifier: phone, 
+        identifier: email, 
         otp 
       });
       
@@ -97,7 +99,11 @@ const Signup = () => {
             </form>
         ) : (
             <form className="auth-form" onSubmit={handleVerifyOtp}>
-              <p style={{ color: "#888", fontSize: "13px", margin: "0 0 15px 0" }}>Verification OTP sent to <strong>+91 {phone}</strong></p>
+              {/* ✅ CHANGED: Display Email instead of Phone */}
+              <p style={{ color: "#888", fontSize: "13px", margin: "0 0 15px 0" }}>
+                  Verification OTP sent to <strong>{email}</strong>
+              </p>
+              
               <input 
                 type="text" placeholder="Enter 6-digit OTP" value={otp} 
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} 
