@@ -1,22 +1,12 @@
 const UserModel = require("../models/UserModel");
-const TempUser = require("../models/TempUserModel"); // Import the new model
+const TempUser = require("../models/TempUserModel"); 
 const jwt = require("jsonwebtoken");
 const twilio = require("twilio");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend"); // [NEW] Import Resend
 
-// 1. Initialize Nodemailer (Gmail) with Hardcoded IPv4
-const transporter = nodemailer.createTransport({
-  host: "142.250.115.108", // Directly targets Google's IPv4 address (Bypasses DNS)
-  port: 587,              
-  secure: false,          
-  tls: {
-    servername: "smtp.gmail.com" // VERY IMPORTANT: Prevents SSL certificate mismatch errors
-  },
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// 1. Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 // 2. Initialize Twilio
 let twilioClient;
 try {
@@ -51,14 +41,14 @@ module.exports.signup = async (req, res) => {
 
     console.log(`\n🔑 [SIGNUP] OTP FOR ${name}: ${otp}\n`);
 
-    // [FIX] REMOVED 'await' so the code doesn't freeze here
-    transporter.sendMail({
-      from: `"Kite Zerodha" <${process.env.EMAIL_USER}>`,
-      to: email,
+    // [NEW] Send Email via Resend (Non-blocking)
+    resend.emails.send({
+      from: 'onboarding@resend.dev', // Default testing sender for Resend free tier
+      to: email, 
       subject: 'Verify your Kite Account',
-      text: `Hello ${name}, your signup OTP is: ${otp}`
+      html: `<p>Hello ${name}, your signup OTP is: <strong>${otp}</strong></p>`
     }).then(() => {
-        console.log(`✅ Signup Email sent to ${email}`);
+        console.log(`✅ Signup Email sent to ${email} via Resend`);
     }).catch((err) => {
         console.log("❌ Email failed:", err.message);
     });
@@ -73,7 +63,7 @@ module.exports.signup = async (req, res) => {
         .catch(() => console.log("❌ SMS failed."));
     }
 
-    // [FIX] Send response IMMEDIATELY
+    // Send response IMMEDIATELY
     res.status(201).json({ message: "OTP sent! Check your email." });
 
   } catch (error) {
@@ -81,6 +71,7 @@ module.exports.signup = async (req, res) => {
     res.status(500).json({ message: "Signup failed", error: error.message });
   }
 };
+
 /**
  * 2. SEND OTP (LOGIN ONLY)
  * Only generates OTP for users who are already verified/permanent.
@@ -102,13 +93,15 @@ module.exports.sendOtp = async (req, res) => {
 
     console.log(`\n🔑 [LOGIN] OTP FOR ${user.name}: ${otp}\n`);
 
+    // [NEW] Send Login OTP via Resend
     try {
-      await transporter.sendMail({
-        from: `"Kite Zerodha" <${process.env.EMAIL_USER}>`,
+      await resend.emails.send({
+        from: 'onboarding@resend.dev',
         to: user.email,
         subject: 'Your Kite Login OTP',
-        text: `Hello ${user.name}, your login code is: ${otp}`
+        html: `<p>Hello ${user.name}, your login code is: <strong>${otp}</strong></p>`
       });
+      console.log(`✅ Login Email sent to ${user.email} via Resend`);
     } catch (err) { console.log("❌ Email failed:", err.message); }
 
     // SMS logic omitted for brevity (same as signup)
@@ -190,17 +183,17 @@ module.exports.verifyOtp = async (req, res) => {
   }
 };
 
-// Helper function for login alerts
+// Helper function for login alerts using Resend
 async function sendLoginAlert(user) {
   try {
     const loginTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
-    await transporter.sendMail({
-      from: `"Kite Security" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: 'onboarding@resend.dev',
       to: user.email,
       subject: '⚠️ Login Alert',
       html: `<p>New login detected at ${loginTime}.</p>`
     });
   } catch (e) {
-    console.error("Alert failed");
+    console.error("Alert failed:", e.message);
   }
 }
