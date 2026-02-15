@@ -32,14 +32,13 @@ module.exports.signup = async (req, res) => {
   try {
     const { email, password, name, phone } = req.body;
     
-    // Check if user already exists in the PERMANENT database
+    // Check if user already exists
     const existingUser = await UserModel.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) return res.status(400).json({ message: "Account already exists." });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Upsert into Temporary Collection (Updates existing temp record or creates new)
-    // This prevents duplicates if the user clicks "Signup" multiple times
+    // Save to DB
     await TempUser.findOneAndUpdate(
       { email }, 
       { email, password, name, phone, otp, createdAt: Date.now() }, 
@@ -48,35 +47,36 @@ module.exports.signup = async (req, res) => {
 
     console.log(`\n🔑 [SIGNUP] OTP FOR ${name}: ${otp}\n`);
 
-    // Send Email
-    try {
-      await transporter.sendMail({
-        from: `"Kite Zerodha" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: 'Verify your Kite Account',
-        text: `Hello ${name}, your signup OTP is: ${otp}`
-      });
-      console.log(`✅ Signup Email sent to ${email}`);
-    } catch (err) { console.log("❌ Email failed:", err.message); }
+    // [FIX] REMOVED 'await' so the code doesn't freeze here
+    transporter.sendMail({
+      from: `"Kite Zerodha" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Verify your Kite Account',
+      text: `Hello ${name}, your signup OTP is: ${otp}`
+    }).then(() => {
+        console.log(`✅ Signup Email sent to ${email}`);
+    }).catch((err) => {
+        console.log("❌ Email failed:", err.message);
+    });
 
-    // Send SMS
+    // Send SMS (Non-blocking)
     if (twilioClient) {
-      try {
-        await twilioClient.messages.create({
+      twilioClient.messages.create({
           body: `Kite Signup OTP: ${otp}`,
           from: process.env.TWILIO_PHONE_NUMBER,
           to: `+91${phone}`
-        });
-        console.log(`✅ SMS sent to ${phone}`);
-      } catch (e) { console.log("❌ SMS failed."); }
+      }).then(() => console.log(`✅ SMS sent to ${phone}`))
+        .catch(() => console.log("❌ SMS failed."));
     }
 
-    res.status(201).json({ message: "OTP sent! Data expires in 10 mins if not verified." });
+    // [FIX] Send response IMMEDIATELY
+    res.status(201).json({ message: "OTP sent! Check your email." });
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Signup failed", error: error.message });
   }
 };
-
 /**
  * 2. SEND OTP (LOGIN ONLY)
  * Only generates OTP for users who are already verified/permanent.
