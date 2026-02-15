@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { io } from "socket.io-client"; 
-import "./Holdings.css";
 import { API_URL } from "../config";
+import { useMarketData } from "../hooks/useMarketData"; 
+import "./Holdings.css";
 
 const Holdings = () => {
   const [allHoldings, setAllHoldings] = useState([]);
-  const [livePrices, setLivePrices] = useState({}); 
+  const { marketData } = useMarketData(); 
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -15,29 +15,49 @@ const Holdings = () => {
       .catch((err) => console.error("Error fetching holdings:", err));
   }, []);
 
-  useEffect(() => {
-    const socket = io(API_URL);
-    socket.on("market-data", (data) => {
-      const priceMap = {};
-      data.forEach(stock => priceMap[stock.name] = stock.price);
-      setLivePrices(priceMap);
-    });
-    return () => socket.disconnect();
-  }, []);
-
   // Calculate totals
   let totalInvestment = 0;
   let totalCurrentValue = 0;
-  
-  allHoldings.forEach(stock => {
-    const currentPrice = livePrices[stock.name] || stock.price;
-    totalInvestment += (stock.avg * stock.qty);
-    totalCurrentValue += (currentPrice * stock.qty);
+  let totalDayPnL = 0; // [NEW] Track Day's P&L
+
+  const tableData = allHoldings.map(stock => {
+      const liveStock = marketData.find(d => d.name === stock.name);
+      const currentPrice = liveStock ? liveStock.price : stock.price;
+      
+      // [NEW] Parse percentage string (e.g., "+0.50%") into a number (0.50)
+      const dayChangePercentStr = liveStock ? liveStock.percent : "0.00%";
+      const dayChangePercent = parseFloat(dayChangePercentStr.replace("%", "").replace("+", ""));
+
+      // [NEW] Calculate Day's P&L: (Current Price - Previous Close) * Qty
+      // Previous Close = Current Price / (1 + Change/100)
+      const previousClose = currentPrice / (1 + (dayChangePercent / 100));
+      const dayPnL = (currentPrice - previousClose) * stock.qty;
+
+      const invested = stock.avg * stock.qty;
+      const curValue = currentPrice * stock.qty;
+      const pnl = curValue - invested;
+      const pnlPct = invested > 0 ? (pnl / invested) * 100 : 0;
+
+      totalInvestment += invested;
+      totalCurrentValue += curValue;
+      totalDayPnL += dayPnL; // Add to total
+
+      return {
+          ...stock,
+          currentPrice,
+          invested,
+          curValue,
+          pnl,
+          pnlPct,
+          dayPnL,
+          dayChangePercentStr
+      };
   });
   
   const totalPnL = totalCurrentValue - totalInvestment;
   const pnlPercent = totalInvestment > 0 ? (totalPnL / totalInvestment) * 100 : 0;
   const isTotalProfit = totalPnL >= 0;
+  const isDayProfit = totalDayPnL >= 0;
 
   return (
     <div className="holdings-container">
@@ -48,11 +68,6 @@ const Holdings = () => {
           <span>All</span>
           <span className="active">Equity</span>
           <span>Mutual funds</span>
-        </div>
-        <div style={{ display: "flex", gap: "15px", fontSize: "12px", color: "#4184f3" }}>
-          <span><i className="fa-solid fa-magnifying-glass"></i> Search</span>
-          <span><i className="fa-solid fa-chart-pie"></i> Analytics</span>
-          <span><i className="fa-solid fa-download"></i> Download</span>
         </div>
       </div>
 
@@ -65,10 +80,18 @@ const Holdings = () => {
           <p>Current value</p>
           <h2>{totalCurrentValue.toFixed(2)}</h2>
         </div>
+        
+        {/* [NEW] Dynamic Day's P&L */}
         <div className="summary-block">
           <p>Day's P&L</p>
-          <h2 className={isTotalProfit ? "profit" : "loss"}>0.00 <span style={{fontSize:"14px"}}>0.00%</span></h2>
+          <h2 className={isDayProfit ? "profit" : "loss"}>
+             {isDayProfit ? "+" : ""}{totalDayPnL.toFixed(2)} 
+             <span style={{fontSize:"14px", marginLeft: "5px"}}>
+               ({(totalInvestment > 0 ? (totalDayPnL / totalInvestment) * 100 : 0).toFixed(2)}%)
+             </span>
+          </h2>
         </div>
+
         <div className="summary-block">
           <p>Total P&L</p>
           <h2 className={isTotalProfit ? "profit" : "loss"}>
@@ -85,7 +108,6 @@ const Holdings = () => {
               <th>Qty.</th>
               <th>Avg. cost</th>
               <th>LTP</th>
-              <th>Invested</th>
               <th>Cur. val</th>
               <th>P&L</th>
               <th>Net chg.</th>
@@ -93,33 +115,26 @@ const Holdings = () => {
             </tr>
           </thead>
           <tbody>
-            {allHoldings.map((stock, index) => {
-              const currentPrice = livePrices[stock.name] || stock.price;
-              const invested = stock.avg * stock.qty;
-              const curValue = currentPrice * stock.qty;
-              const pnl = curValue - invested;
-              const pnlPct = (pnl / invested) * 100;
-              const profClass = pnl >= 0 ? "profit" : "loss";
+            {tableData.map((stock, index) => {
+              const profClass = stock.pnl >= 0 ? "profit" : "loss";
+              const dayClass = stock.dayPnL >= 0 ? "profit" : "loss";
 
               return (
                 <tr key={index}>
                   <td style={{color: "#4184f3"}}>{stock.name}</td>
                   <td>{stock.qty}</td>
                   <td>{stock.avg.toFixed(2)}</td>
-                  <td>{currentPrice.toFixed(2)}</td>
-                  <td>{invested.toFixed(2)}</td>
-                  <td>{curValue.toFixed(2)}</td>
-                  <td className={profClass}>{pnl.toFixed(2)}</td>
-                  <td className={profClass}>{pnlPct.toFixed(2)}%</td>
-                  <td>0.00%</td>
+                  <td>{stock.currentPrice.toFixed(2)}</td>
+                  <td>{stock.curValue.toFixed(2)}</td>
+                  <td className={profClass}>{stock.pnl.toFixed(2)}</td>
+                  <td className={profClass}>{stock.pnlPct.toFixed(2)}%</td>
+                  {/* [NEW] Show Day Change % from Market Data */}
+                  <td className={dayClass}>{stock.dayChangePercentStr}</td>
                 </tr>
               );
             })}
-            {/* Total Row */}
             <tr style={{ backgroundColor: "transparent", borderTop: "1px solid #2b2b2b", fontWeight: "bold" }}>
-               <td colSpan="4"></td>
-               <td>Total</td>
-               <td></td>
+               <td colSpan="5" style={{ textAlign: "left", color: "#888" }}>Total</td>
                <td className={isTotalProfit ? "profit" : "loss"}>{totalPnL.toFixed(2)}</td>
                <td className={isTotalProfit ? "profit" : "loss"}>{pnlPercent.toFixed(2)}%</td>
                <td></td>
@@ -128,10 +143,9 @@ const Holdings = () => {
         </table>
       </div>
 
-      {/* Progress Bar matching Screenshot 2 */}
+      {/* Progress Bar */}
       <div className="bar-container">
          <div className="progress-bar">
-            {/* The width represents Investment vs Total Value roughly */}
             <div className="progress-inner" style={{ width: totalCurrentValue > 0 ? `${(totalInvestment/totalCurrentValue)*100}%` : '50%' }}></div>
          </div>
          <div className="bar-legend">
@@ -143,7 +157,6 @@ const Holdings = () => {
             </div>
          </div>
       </div>
-
     </div>
   );
 };

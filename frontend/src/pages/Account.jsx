@@ -14,10 +14,15 @@ const Account = () => {
     name: user.name || "",
     phone: user.phone || ""
   });
-
-  const handleImageUpload = async (e) => {
+const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // [NEW] Safety Check: Limit to 60KB
+    if (file.size > 60000) {
+        toast.error("Image too large! Please choose a file under 60KB.");
+        return;
+    }
 
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -25,8 +30,11 @@ const Account = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.put(`${API_URL}/user/avatar`, { avatar: reader.result }, { headers: { Authorization: `Bearer ${token}` } });
-        setUser(res.data.user);
+        
+        // Update context and local storage immediately
+        setUser(prev => ({ ...prev, avatar: res.data.user.avatar }));
         localStorage.setItem("avatar", res.data.user.avatar);
+        
         toast.success("Profile photo updated");
       } catch (err) {
         toast.error("Upload failed");

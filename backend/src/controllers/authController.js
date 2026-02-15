@@ -10,9 +10,10 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
-  }
+  },
+  // [FIX] Force using IPv4 to prevent ENETUNREACH errors
+  family: 4 
 });
-
 // 2. Initialize Twilio
 let twilioClient;
 try {
