@@ -4,16 +4,18 @@ const jwt = require("jsonwebtoken");
 const twilio = require("twilio");
 const nodemailer = require("nodemailer");
 
-// 1. Initialize Nodemailer (Gmail) with Explicit Settings
+// 1. Initialize Nodemailer (Gmail) with Hardcoded IPv4
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,              // [CHANGE] Port 587 works on Render
-  secure: false,          // [CHANGE] Must be false for Port 587
+  host: "142.250.115.108", // Directly targets Google's IPv4 address (Bypasses DNS)
+  port: 587,              
+  secure: false,          
+  tls: {
+    servername: "smtp.gmail.com" // VERY IMPORTANT: Prevents SSL certificate mismatch errors
+  },
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
-  },
-  family: 4 // Forces IPv4
+  }
 });
 // 2. Initialize Twilio
 let twilioClient;

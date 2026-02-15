@@ -70,21 +70,23 @@ app.get("/", (req, res) => {
 app.get("/test-email", async (req, res) => {
   try {
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
+      host: "142.250.115.108", // Hardcoded IPv4
       port: 587,
       secure: false,
+      tls: {
+        servername: "smtp.gmail.com" 
+      },
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-      },
-      family: 4 // Double safety
+      }
     });
 
     await transporter.sendMail({
       from: `"Kite Debug" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER, // Sends to yourself
+      to: process.env.EMAIL_USER, 
       subject: "Test Email from Kite",
-      text: "If you see this, your email configuration is finally correct!"
+      text: "If you see this, the IPv4 bypass worked!"
     });
 
     res.json({ message: "✅ Email Sent Successfully! Check your Inbox/Spam." });
