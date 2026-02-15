@@ -7,8 +7,8 @@ const nodemailer = require("nodemailer");
 // 1. Initialize Nodemailer (Gmail) with Explicit Settings
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com", // Explicit Host
-  port: 465,              // Explicit Port (Secure)
-  secure: true,           // Use SSL
+  port: 587,              // Explicit Port (Secure)
+  secure: false,           // Use SSL
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
