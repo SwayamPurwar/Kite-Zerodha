@@ -14,9 +14,9 @@ try {
 }
 
 // ==========================================
-// [NEW] BREVO HTTP EMAIL HELPER FUNCTION
+// BREVO HTTP EMAIL HELPER FUNCTION
 // ==========================================
-async function sendEmailBrevo(toEmail, subject, htmlContent) {
+async function sendEmailBrevo(toEmail, subject, textContent, htmlContent) {
   try {
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
@@ -26,9 +26,10 @@ async function sendEmailBrevo(toEmail, subject, htmlContent) {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        sender: { email: process.env.EMAIL_USER, name: 'Kite Zerodha' }, // Must be your verified Gmail
-        to: [{ email: toEmail }], // Can be ANY user's email
+        sender: { email: process.env.EMAIL_USER, name: 'Kite Zerodha' }, 
+        to: [{ email: toEmail }], 
         subject: subject,
+        textContent: textContent, // Added for spam filter bypass
         htmlContent: htmlContent
       })
     });
@@ -62,11 +63,12 @@ module.exports.signup = async (req, res) => {
 
     console.log(`\n🔑 [SIGNUP] OTP FOR ${name}: ${otp}\n`);
 
-    // Send via Brevo API
+    // Send via Brevo API (includes plain text and HTML)
     sendEmailBrevo(
         email, 
         'Verify your Kite Account', 
-        `<p>Hello ${name}, your signup OTP is: <strong>${otp}</strong></p>`
+        `Hello ${name}, your signup OTP is: ${otp}`, // Text version
+        `<p>Hello ${name}, your signup OTP is: <strong>${otp}</strong></p>` // HTML version
     );
 
     if (twilioClient) {
@@ -110,6 +112,7 @@ module.exports.sendOtp = async (req, res) => {
     sendEmailBrevo(
         user.email, 
         'Your Kite Login OTP', 
+        `Hello ${user.name}, your login code is: ${otp}`,
         `<p>Hello ${user.name}, your login code is: <strong>${otp}</strong></p>`
     );
 
@@ -188,6 +191,7 @@ async function sendLoginAlert(user) {
   sendEmailBrevo(
       user.email, 
       '⚠️ Login Alert', 
+      `New login detected at ${loginTime}.`,
       `<p>New login detected at ${loginTime}.</p>`
   );
 }

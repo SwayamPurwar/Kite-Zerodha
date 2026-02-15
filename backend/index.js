@@ -58,46 +58,6 @@ app.get("/", (req, res) => {
     res.send("<h1>Kite Zerodha Backend is Running!</h1>");
 });
 
-// ============================================================
-// [DEBUG ROUTE] Test Email Functionality via Brevo HTTP API
-// ============================================================
-app.get("/test-email", async (req, res) => {
-  try {
-    if (!process.env.BREVO_API_KEY) {
-      return res.status(400).json({ message: "BREVO_API_KEY is missing in your environment variables!" });
-    }
-
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'accept': 'application/json',
-        'api-key': process.env.BREVO_API_KEY,
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        sender: { email: process.env.EMAIL_USER, name: 'Kite Zerodha Debug' }, // Must be your verified Gmail in Brevo
-        to: [{ email: process.env.EMAIL_USER }], // Sends to yourself for testing
-        subject: "Test Email from Kite (via Brevo API)",
-        htmlContent: "<p><strong>Success!</strong> If you see this, the Brevo API is working perfectly and bypassing Render's firewall. You can now send OTPs to anyone!</p>"
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(400).json({ message: "Brevo API rejected the email", error: data });
-    }
-
-    res.json({ message: "✅ Email Sent Successfully! Check your Inbox/Spam.", brevoResponse: data });
-  } catch (error) {
-    res.status(500).json({ 
-        message: "Email Failed", 
-        error: error.message, 
-        stack: error.stack 
-    });
-  }
-});
-
 // Routes
 app.use("/", require("./src/routes/holdingsRoute")); 
 app.use("/", require("./src/routes/ordersRoute"));
