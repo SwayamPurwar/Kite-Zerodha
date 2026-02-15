@@ -1,4 +1,3 @@
-// Kite-Zerodha/backend/index.js
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
@@ -6,8 +5,16 @@ const bodyParser = require("body-parser");
 const connectDB = require("./src/config/db");
 const http = require("http");
 const { Server } = require("socket.io");
-const helmet = require("helmet"); // [NEW] Security Headers
-const rateLimit = require("express-rate-limit"); // [NEW] Rate Limiting
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const nodemailer = require("nodemailer");
+const dns = require("dns"); // [NEW] Import DNS
+
+// [CRITICAL FIX] Force Node.js to use IPv4 globally
+// This prevents the ENETUNREACH IPv6 error completely
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
 dotenv.config();
 
@@ -22,25 +29,23 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// [FIX] Add this line to trust Render's proxy
+// Trust Proxy (Required for Render)
 app.set('trust proxy', 1);
-// [NEW] 1. Security Headers
+
 app.use(helmet());
 
-// [NEW] 2. Rate Limiting (Prevent Brute Force)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: "Too many requests from this IP, please try again after 15 minutes",
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
+  message: "Too many requests from this IP",
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use("/auth", limiter); // Apply stricter limits to auth routes
+app.use("/auth", limiter);
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    // Replace with your actual frontend URL
     origin: ["http://localhost:5173", "https://swayamzerodha.vercel.app", "https://kite-zerodha-seven.vercel.app"],
     methods: ["GET", "POST"],
     credentials: true
@@ -55,9 +60,40 @@ app.use(cors({
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
-// [NEW] 3. Root Route to fix "Cannot GET /"
+// Root Route
 app.get("/", (req, res) => {
     res.send("<h1>Kite Zerodha Backend is Running!</h1>");
+});
+
+// [DEBUG ROUTE] Test Email Functionality
+app.get("/test-email", async (req, res) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      },
+      family: 4 // Double safety
+    });
+
+    await transporter.sendMail({
+      from: `"Kite Debug" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER, // Sends to yourself
+      subject: "Test Email from Kite",
+      text: "If you see this, your email configuration is finally correct!"
+    });
+
+    res.json({ message: "✅ Email Sent Successfully! Check your Inbox/Spam." });
+  } catch (error) {
+    res.status(500).json({ 
+        message: "Email Failed", 
+        error: error.message, 
+        stack: error.stack 
+    });
+  }
 });
 
 // Routes
@@ -70,49 +106,11 @@ app.use("/payment", require("./src/routes/paymentRoute"));
 
 require("./src/controllers/marketController").startMarketEngine(io);
 
-// [NEW] 4. Global Error Handler
+// Global Error Handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ message: "Internal Server Error", error: err.message });
 });
-
-
-
-// ... existing code ...
-
-// [DEBUG ROUTE] Open http://localhost:3002/test-email (or your Render URL) to test
-app.get("/test-email", async (req, res) => {
-  try {
-    const nodemailer = require("nodemailer");
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      },
-      family: 4
-    });
-
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER, // Send to yourself
-      subject: "Test Email from Kite",
-      text: "If you see this, your email configuration is correct!"
-    });
-
-    res.json({ message: "Email Sent Successfully!", info });
-  } catch (error) {
-    res.status(500).json({ 
-      message: "Email Failed", 
-      error: error.message, 
-      stack: error.stack 
-    });
-  }
-});
-
-// ... server.listen ...
 
 server.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
