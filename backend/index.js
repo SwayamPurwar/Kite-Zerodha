@@ -22,6 +22,8 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 3002;
 
+// [FIX] Add this line to trust Render's proxy
+app.set('trust proxy', 1);
 // [NEW] 1. Security Headers
 app.use(helmet());
 

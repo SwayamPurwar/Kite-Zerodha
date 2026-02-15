@@ -4,15 +4,16 @@ const jwt = require("jsonwebtoken");
 const twilio = require("twilio");
 const nodemailer = require("nodemailer");
 
-// 1. Initialize Nodemailer (Gmail)
+// 1. Initialize Nodemailer (Gmail) with Explicit Settings
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: "smtp.gmail.com", // Explicit Host
+  port: 465,              // Explicit Port (Secure)
+  secure: true,           // Use SSL
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
-  // [FIX] Force using IPv4 to prevent ENETUNREACH errors
-  family: 4 
+  family: 4 // Force IPv4 (Prevents IPv6 timeout issues)
 });
 // 2. Initialize Twilio
 let twilioClient;
