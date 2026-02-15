@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { io } from "socket.io-client"; 
 import { API_URL } from "../config";
+import { useMarketData } from "../hooks/useMarketData"; // [NEW] Import Hook
 import "../pages/Holdings.css"; // Reuse the layout styles from Holdings
 
 const Positions = () => {
   const [positions, setPositions] = useState([]);
-  const [livePrices, setLivePrices] = useState({});
   const [activeTab, setActiveTab] = useState("Net");
+  
+  // [NEW] Use the shared hook for real-time data
+  const { marketData } = useMarketData(); 
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -18,24 +20,30 @@ const Positions = () => {
       .catch((err) => console.error("Error fetching positions:", err));
   }, []);
 
-  useEffect(() => {
-    const socket = io(API_URL);
-    socket.on("market-data", (data) => {
-      const priceMap = {};
-      data.forEach(stock => priceMap[stock.name] = stock.price);
-      setLivePrices(priceMap);
-    });
-    return () => socket.disconnect();
-  }, []);
-
   // Calculate totals
   let totalInvestment = 0;
   let totalCurrentValue = 0;
   
-  positions.forEach(stock => {
-    const currentPrice = livePrices[stock.name] || stock.price;
-    totalInvestment += (stock.avg * stock.qty);
-    totalCurrentValue += (currentPrice * stock.qty);
+  // Prepare table data with live prices
+  const tableData = positions.map(stock => {
+    // Find live price from hook data, fallback to static saved price
+    const liveStock = marketData.find(d => d.name === stock.name);
+    const currentPrice = liveStock ? liveStock.price : stock.price;
+    
+    const invested = stock.avg * stock.qty;
+    const curValue = currentPrice * stock.qty;
+    const pnl = curValue - invested;
+    const pnlPct = invested > 0 ? (pnl / invested) * 100 : 0;
+
+    totalInvestment += invested;
+    totalCurrentValue += curValue;
+
+    return {
+        ...stock,
+        currentPrice,
+        pnl,
+        pnlPct
+    };
   });
   
   const totalPnL = totalCurrentValue - totalInvestment;
@@ -103,13 +111,8 @@ const Positions = () => {
               </tr>
             </thead>
             <tbody>
-              {positions.map((stock, index) => {
-                const currentPrice = livePrices[stock.name] || stock.price;
-                const invested = stock.avg * stock.qty;
-                const curValue = currentPrice * stock.qty;
-                const pnl = curValue - invested;
-                const pnlPct = invested > 0 ? (pnl / invested) * 100 : 0;
-                const profClass = pnl >= 0 ? "profit" : "loss";
+              {tableData.map((stock, index) => {
+                const profClass = stock.pnl >= 0 ? "profit" : "loss";
 
                 return (
                   <tr key={index}>
@@ -121,9 +124,9 @@ const Positions = () => {
                     <td style={{ textAlign: "left", color: "#cecece", fontWeight: "500" }}>{stock.name}</td>
                     <td>{stock.qty}</td>
                     <td>{stock.avg.toFixed(2)}</td>
-                    <td>{currentPrice.toFixed(2)}</td>
-                    <td className={profClass} style={{ fontWeight: "500" }}>{pnl.toFixed(2)}</td>
-                    <td className={profClass}>{pnlPct.toFixed(2)}%</td>
+                    <td>{stock.currentPrice.toFixed(2)}</td>
+                    <td className={profClass} style={{ fontWeight: "500" }}>{stock.pnl.toFixed(2)}</td>
+                    <td className={profClass}>{stock.pnlPct.toFixed(2)}%</td>
                   </tr>
                 );
               })}

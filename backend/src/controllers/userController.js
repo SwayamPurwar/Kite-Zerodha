@@ -115,7 +115,7 @@ module.exports.updateProfile = async (req, res) => {
     const updatedUser = await UserModel.findByIdAndUpdate(
       userId,
       { name, phone },
-      { new: true } // Returns the updated document
+      { returnDocument: "after" } // [FIX] Updated
     ).select("-password");
 
     res.json({ message: "Profile updated successfully!", user: updatedUser });

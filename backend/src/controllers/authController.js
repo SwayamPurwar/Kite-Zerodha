@@ -43,7 +43,7 @@ module.exports.signup = async (req, res) => {
     await TempUser.findOneAndUpdate(
       { email }, 
       { email, password, name, phone, otp, createdAt: Date.now() }, 
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
     );
 
     console.log(`\n🔑 [SIGNUP] OTP FOR ${name}: ${otp}\n`);

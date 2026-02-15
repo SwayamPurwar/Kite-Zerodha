@@ -41,7 +41,7 @@ module.exports.createNewOrder = async (req, res) => {
       const user = await UserModel.findOneAndUpdate(
         { _id: userId, walletBalance: { $gte: totalCost } }, 
         { $inc: { walletBalance: -totalCost } },             
-        { new: true }                                        
+        { returnDocument: "after" } // [FIX] Updated                              
       );
 
       if (!user) {
