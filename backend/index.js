@@ -76,6 +76,44 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: "Internal Server Error", error: err.message });
 });
 
+
+
+// ... existing code ...
+
+// [DEBUG ROUTE] Open http://localhost:3002/test-email (or your Render URL) to test
+app.get("/test-email", async (req, res) => {
+  try {
+    const nodemailer = require("nodemailer");
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      },
+      family: 4
+    });
+
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER, // Send to yourself
+      subject: "Test Email from Kite",
+      text: "If you see this, your email configuration is correct!"
+    });
+
+    res.json({ message: "Email Sent Successfully!", info });
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Email Failed", 
+      error: error.message, 
+      stack: error.stack 
+    });
+  }
+});
+
+// ... server.listen ...
+
 server.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
 });
