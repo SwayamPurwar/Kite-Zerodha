@@ -1,3 +1,4 @@
+// Kite-Zerodha/backend/index.js
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
@@ -8,8 +9,9 @@ const { Server } = require("socket.io");
 
 dotenv.config();
 
-if (!process.env.JWT_SECRET) {
-  console.error("FATAL ERROR: JWT_SECRET is not defined.");
+// Ensure critical variables exist
+if (!process.env.JWT_SECRET || !process.env.MONGO_URL) {
+  console.error("FATAL ERROR: JWT_SECRET or MONGO_URL is not defined.");
   process.exit(1); 
 }
 
@@ -21,40 +23,29 @@ const PORT = process.env.PORT || 3002;
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://swayamzerodha.vercel.app"],
+    // Replace with your actual frontend URL
+    origin: ["http://localhost:5173", "https://swayamzerodha.vercel.app", "https://kite-zerodha-seven.vercel.app"],
     methods: ["GET", "POST"]
   }
 });
 
 app.use(cors({
-  origin: ["http://localhost:5173", "https://swayamzerodha.vercel.app"],
+  origin: ["http://localhost:5173", "https://swayamzerodha.vercel.app", "https://kite-zerodha-seven.vercel.app"],
   credentials: true
 }));
 
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
-// --- Import Routes ---
-const holdingsRoute = require("./src/routes/holdingsRoute");
-const ordersRoute = require("./src/routes/ordersRoute");
-const authRoute = require("./src/routes/authRoute");
-const marketRoute = require("./src/routes/marketRoute");
-const userRoute = require("./src/routes/userRoute"); 
-const paymentRoute = require("./src/routes/paymentRoute"); // ✅ Import Payment Route
-
-// --- Use Routes ---
-app.use("/", holdingsRoute); 
-app.use("/", ordersRoute);
-app.use("/auth", authRoute); 
-app.use("/market", marketRoute); 
-app.use("/user", userRoute); 
-app.use("/payment", paymentRoute); // ✅ Register Payment Route
+// Routes
+app.use("/", require("./src/routes/holdingsRoute")); 
+app.use("/", require("./src/routes/ordersRoute"));
+app.use("/auth", require("./src/routes/authRoute")); 
+app.use("/market", require("./src/routes/marketRoute")); 
+app.use("/user", require("./src/routes/userRoute")); 
+app.use("/payment", require("./src/routes/paymentRoute"));
 
 require("./src/controllers/marketController").startMarketEngine(io);
-
-app.get("/", (req, res) => {
-  res.send("Kite Trading Backend is Live!");
-});
 
 server.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
