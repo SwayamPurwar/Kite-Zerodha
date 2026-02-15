@@ -1,13 +1,9 @@
 const UserModel = require("../models/UserModel");
-const TempUser = require("../models/TempUserModel"); 
+const TempUser = require("../models/TempUserModel");
 const jwt = require("jsonwebtoken");
 const twilio = require("twilio");
-const { Resend } = require("resend"); // [NEW] Import Resend
 
-// 1. Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-// 2. Initialize Twilio
+// Initialize Twilio
 let twilioClient;
 try {
   if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
@@ -17,22 +13,47 @@ try {
   console.log("⚠️ Twilio configuration is invalid.");
 }
 
+// ==========================================
+// [NEW] BREVO HTTP EMAIL HELPER FUNCTION
+// ==========================================
+async function sendEmailBrevo(toEmail, subject, htmlContent) {
+  try {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: { email: process.env.EMAIL_USER, name: 'Kite Zerodha' }, // Must be your verified Gmail
+        to: [{ email: toEmail }], // Can be ANY user's email
+        subject: subject,
+        htmlContent: htmlContent
+      })
+    });
+    
+    const data = await response.json();
+    if (!response.ok) throw new Error(JSON.stringify(data));
+    console.log(`✅ Email sent to ${toEmail} via Brevo`);
+  } catch (error) {
+    console.error("❌ Email failed:", error.message);
+  }
+}
+// ==========================================
+
 /**
  * 1. SIGNUP
- * Saves data to "TempUser" (Temporary Collection).
- * Data automatically vanishes in 10 mins if not verified.
  */
 module.exports.signup = async (req, res) => {
   try {
     const { email, password, name, phone } = req.body;
     
-    // Check if user already exists
     const existingUser = await UserModel.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) return res.status(400).json({ message: "Account already exists." });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Save to DB
     await TempUser.findOneAndUpdate(
       { email }, 
       { email, password, name, phone, otp, createdAt: Date.now() }, 
@@ -41,19 +62,13 @@ module.exports.signup = async (req, res) => {
 
     console.log(`\n🔑 [SIGNUP] OTP FOR ${name}: ${otp}\n`);
 
-    // [NEW] Send Email via Resend (Non-blocking)
-    resend.emails.send({
-      from: 'onboarding@resend.dev', // Default testing sender for Resend free tier
-      to: email, 
-      subject: 'Verify your Kite Account',
-      html: `<p>Hello ${name}, your signup OTP is: <strong>${otp}</strong></p>`
-    }).then(() => {
-        console.log(`✅ Signup Email sent to ${email} via Resend`);
-    }).catch((err) => {
-        console.log("❌ Email failed:", err.message);
-    });
+    // Send via Brevo API
+    sendEmailBrevo(
+        email, 
+        'Verify your Kite Account', 
+        `<p>Hello ${name}, your signup OTP is: <strong>${otp}</strong></p>`
+    );
 
-    // Send SMS (Non-blocking)
     if (twilioClient) {
       twilioClient.messages.create({
           body: `Kite Signup OTP: ${otp}`,
@@ -63,7 +78,6 @@ module.exports.signup = async (req, res) => {
         .catch(() => console.log("❌ SMS failed."));
     }
 
-    // Send response IMMEDIATELY
     res.status(201).json({ message: "OTP sent! Check your email." });
 
   } catch (error) {
@@ -74,7 +88,6 @@ module.exports.signup = async (req, res) => {
 
 /**
  * 2. SEND OTP (LOGIN ONLY)
- * Only generates OTP for users who are already verified/permanent.
  */
 module.exports.sendOtp = async (req, res) => {
   try {
@@ -93,18 +106,12 @@ module.exports.sendOtp = async (req, res) => {
 
     console.log(`\n🔑 [LOGIN] OTP FOR ${user.name}: ${otp}\n`);
 
-    // [NEW] Send Login OTP via Resend
-    try {
-      await resend.emails.send({
-        from: 'onboarding@resend.dev',
-        to: user.email,
-        subject: 'Your Kite Login OTP',
-        html: `<p>Hello ${user.name}, your login code is: <strong>${otp}</strong></p>`
-      });
-      console.log(`✅ Login Email sent to ${user.email} via Resend`);
-    } catch (err) { console.log("❌ Email failed:", err.message); }
-
-    // SMS logic omitted for brevity (same as signup)
+    // Send via Brevo API
+    sendEmailBrevo(
+        user.email, 
+        'Your Kite Login OTP', 
+        `<p>Hello ${user.name}, your login code is: <strong>${otp}</strong></p>`
+    );
 
     res.json({ message: "OTP sent successfully!" });
   } catch (error) {
@@ -113,14 +120,12 @@ module.exports.sendOtp = async (req, res) => {
 };
 
 /**
- * 3. VERIFY OTP (HANDLES BOTH SIGNUP AND LOGIN)
- * Checks Permanent DB first (Login), then Temp DB (Signup).
+ * 3. VERIFY OTP
  */
 module.exports.verifyOtp = async (req, res) => {
   try {
     const { identifier, otp } = req.body;
 
-    // --- CASE A: LOGIN VERIFICATION (User exists in Permanent DB) ---
     let user = await UserModel.findOne({
       $or: [{ email: identifier }, { phone: identifier }]
     });
@@ -131,7 +136,6 @@ module.exports.verifyOtp = async (req, res) => {
         user.otpExpiry = null;
         await user.save();
         
-        // Send Alert
         sendLoginAlert(user);
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -141,28 +145,23 @@ module.exports.verifyOtp = async (req, res) => {
       }
     }
 
-    // --- CASE B: SIGNUP VERIFICATION (User is in Temp DB) ---
     const tempUser = await TempUser.findOne({
       $or: [{ email: identifier }, { phone: identifier }]
     });
 
     if (tempUser) {
       if (tempUser.otp === otp) {
-        // 1. Move data from TempUser to UserModel (PERMANENT SAVE)
         const newUser = new UserModel({
           email: tempUser.email,
           password: tempUser.password,
           name: tempUser.name,
           phone: tempUser.phone,
-          walletBalance: 100000 // Default balance
+          walletBalance: 100000 
         });
         
         await newUser.save();
-
-        // 2. DELETE the temp record immediately
         await TempUser.deleteOne({ _id: tempUser._id });
 
-        // 3. Generate Token
         const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
         
         return res.json({ 
@@ -183,17 +182,12 @@ module.exports.verifyOtp = async (req, res) => {
   }
 };
 
-// Helper function for login alerts using Resend
+// Helper function for login alerts
 async function sendLoginAlert(user) {
-  try {
-    const loginTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
-    await resend.emails.send({
-      from: 'onboarding@resend.dev',
-      to: user.email,
-      subject: '⚠️ Login Alert',
-      html: `<p>New login detected at ${loginTime}.</p>`
-    });
-  } catch (e) {
-    console.error("Alert failed:", e.message);
-  }
+  const loginTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  sendEmailBrevo(
+      user.email, 
+      '⚠️ Login Alert', 
+      `<p>New login detected at ${loginTime}.</p>`
+  );
 }

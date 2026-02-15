@@ -8,7 +8,6 @@ const http = require("http");
 const { Server } = require("socket.io");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
-const { Resend } = require("resend"); // [NEW] Import Resend
 
 dotenv.config();
 
@@ -22,9 +21,6 @@ connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 3002;
-
-// [NEW] Initialize Resend using your API key
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Trust Proxy (Required for Render)
 app.set('trust proxy', 1);
@@ -62,25 +58,37 @@ app.get("/", (req, res) => {
     res.send("<h1>Kite Zerodha Backend is Running!</h1>");
 });
 
-// [DEBUG ROUTE] Test Email Functionality via Resend API
+// ============================================================
+// [DEBUG ROUTE] Test Email Functionality via Brevo HTTP API
+// ============================================================
 app.get("/test-email", async (req, res) => {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      return res.status(400).json({ message: "RESEND_API_KEY is missing in your environment variables!" });
+    if (!process.env.BREVO_API_KEY) {
+      return res.status(400).json({ message: "BREVO_API_KEY is missing in your environment variables!" });
     }
 
-    const { data, error } = await resend.emails.send({
-      from: 'onboarding@resend.dev', // Resend's free tier testing address
-      to: process.env.EMAIL_USER,    // Send to your own email address to test
-      subject: "Test Email from Kite (via Resend)",
-      html: "<p><strong>Success!</strong> If you see this, the Resend API is working perfectly and bypassing Render's firewall.</p>"
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: { email: process.env.EMAIL_USER, name: 'Kite Zerodha Debug' }, // Must be your verified Gmail in Brevo
+        to: [{ email: process.env.EMAIL_USER }], // Sends to yourself for testing
+        subject: "Test Email from Kite (via Brevo API)",
+        htmlContent: "<p><strong>Success!</strong> If you see this, the Brevo API is working perfectly and bypassing Render's firewall. You can now send OTPs to anyone!</p>"
+      })
     });
 
-    if (error) {
-      return res.status(400).json({ message: "Resend API rejected the email", error });
+    const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(400).json({ message: "Brevo API rejected the email", error: data });
     }
 
-    res.json({ message: "✅ Email Sent Successfully! Check your Inbox/Spam.", data });
+    res.json({ message: "✅ Email Sent Successfully! Check your Inbox/Spam.", brevoResponse: data });
   } catch (error) {
     res.status(500).json({ 
         message: "Email Failed", 
