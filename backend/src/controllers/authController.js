@@ -6,14 +6,14 @@ const nodemailer = require("nodemailer");
 
 // 1. Initialize Nodemailer (Gmail) with Explicit Settings
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com", // Explicit Host
-  port: 587,              // Explicit Port (Secure)
-  secure: false,           // Use SSL
+  host: "smtp.gmail.com",
+  port: 587,              // [CHANGE] Port 587 works on Render
+  secure: false,          // [CHANGE] Must be false for Port 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
-  family: 4 // Force IPv4 (Prevents IPv6 timeout issues)
+  family: 4 // Forces IPv4
 });
 // 2. Initialize Twilio
 let twilioClient;
