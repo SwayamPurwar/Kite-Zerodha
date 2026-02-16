@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { createNewOrder } = require("../controllers/ordersController");
+const { createNewOrder, cancelOrder } = require("../controllers/ordersController");
 const OrdersModel = require("../models/OrdersModel");
 const authMiddleware = require("../middleware/authMiddleware"); // <-- Import middleware
 
@@ -12,5 +12,5 @@ router.get("/allOrders", authMiddleware, async (req, res) => {
 
 // POST new order (protected with authMiddleware)
 router.post("/newOrder", authMiddleware, createNewOrder);
-
+router.put("/cancelOrder/:id", authMiddleware, cancelOrder);
 module.exports = router;

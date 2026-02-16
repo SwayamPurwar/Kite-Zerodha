@@ -124,3 +124,21 @@ module.exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Error updating profile", error: error.message });
   }
 };
+
+
+
+module.exports.updateTelegramId = async (req, res) => {
+  try {
+    const { telegramChatId } = req.body;
+    
+    // req.user.id comes from your JWT authMiddleware
+    const userId = req.user.id; 
+
+    await UserModel.findByIdAndUpdate(userId, { telegramChatId });
+
+    res.json({ message: "Telegram ID saved! Push alerts are now active." });
+  } catch (error) {
+    console.error("Telegram update error:", error);
+    res.status(500).json({ message: "Failed to save Telegram ID" });
+  }
+};

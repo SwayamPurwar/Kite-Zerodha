@@ -110,3 +110,25 @@ module.exports.createNewOrder = async (req, res) => {
     res.status(500).json({ message: "Error processing order" });
   }
 };
+
+// NEW: Cancel a pending order
+module.exports.cancelOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    
+    // Find the order and ensure it belongs to the logged-in user
+    const order = await OrdersModel.findOne({ _id: orderId, userId: req.user.id });
+    
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    if (order.status !== "Pending") return res.status(400).json({ message: "Only pending orders can be cancelled." });
+
+    // Mark as Cancelled
+    order.status = "Cancelled";
+    await order.save();
+    
+    res.json({ message: "Order cancelled successfully" });
+  } catch (error) {
+    console.error("Cancel Order Error:", error);
+    res.status(500).json({ message: "Failed to cancel order" });
+  }
+};

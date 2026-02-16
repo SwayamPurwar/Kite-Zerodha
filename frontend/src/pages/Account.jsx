@@ -3,6 +3,7 @@ import { UserContext } from "../context/UserContext";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { API_URL } from "../config";
+import TelegramSettings from "../components/TelegramSettings";
 
 const Account = () => {
   const { user, setUser, logout } = useContext(UserContext);
@@ -14,11 +15,12 @@ const Account = () => {
     name: user.name || "",
     phone: user.phone || ""
   });
-const handleImageUpload = async (e) => {
+
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // [NEW] Safety Check: Limit to 60KB
+    // Safety Check: Limit to 60KB
     if (file.size > 60000) {
         toast.error("Image too large! Please choose a file under 60KB.");
         return;
@@ -84,8 +86,8 @@ const handleImageUpload = async (e) => {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #2b2b2b", paddingBottom: "15px", marginBottom: "40px" }}>
         <h2 style={{ fontSize: "1.2rem", fontWeight: "400", color: "#cecece", margin: 0 }}>Profile</h2>
         <div style={{ display: "flex", gap: "20px", fontSize: "12px", color: "#4184f3" }}>
-           <span>Apps</span>
-           <span>Password & Security</span>
+           <span style={{ cursor: "pointer" }}>Apps</span>
+           <span style={{ cursor: "pointer" }}>Password & Security</span>
         </div>
       </div>
 
@@ -108,13 +110,13 @@ const handleImageUpload = async (e) => {
          </div>
       </div>
 
-      {/* Grid Content */}
+      {/* Grid Content - Split into Two Columns */}
       <div style={{ display: "flex", gap: "60px" }}>
          
          {/* Left Column (Account Info) */}
          <div style={{ flex: 1 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "30px" }}>
-               <h3 style={{ fontSize: "1.1rem", fontWeight: "400", color: "#888", margin: 0 }}>Account</h3>
+               <h3 style={{ fontSize: "1.1rem", fontWeight: "400", color: "#cecece", margin: 0 }}>Account</h3>
                
                {/* Manage / Cancel Toggle Button */}
                <span 
@@ -161,21 +163,24 @@ const handleImageUpload = async (e) => {
                 </>
             )}
 
-            
             <InfoRow label="E-mail" value={user.email} />
-           
-              <button 
-                  onClick={handleLogout} 
-                  style={{ marginTop: "30px", backgroundColor: "transparent", color: "#df514d", border: "1px solid #df514d", padding: "10px 20px", borderRadius: "3px", cursor: "pointer", fontSize: "13px", width: "100%", fontWeight: "500", transition: "background 0.2s" }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = "rgba(223, 81, 77, 0.1)"}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = "transparent"}
-               >
-                  Logout
-               </button>
-            
-        
+          
+            <button 
+                onClick={handleLogout} 
+                style={{ marginTop: "30px", backgroundColor: "transparent", color: "#df514d", border: "1px solid #df514d", padding: "10px 20px", borderRadius: "3px", cursor: "pointer", fontSize: "13px", width: "100%", fontWeight: "500", transition: "background 0.2s" }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = "rgba(223, 81, 77, 0.1)"}
+                onMouseLeave={(e) => e.target.style.backgroundColor = "transparent"}
+            >
+                Logout
+            </button>
+         </div>
 
-           
+         {/* Right Column (Settings & Telegram) */}
+         <div style={{ flex: 1 }}>
+             <h3 style={{ fontSize: "1.1rem", fontWeight: "400", color: "#cecece", margin: "0 0 30px 0" }}>Integrations</h3>
+             
+             {/* The Telegram Component injected here! */}
+             <TelegramSettings />
          </div>
 
       </div>

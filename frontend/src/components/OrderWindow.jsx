@@ -18,6 +18,12 @@ const OrderWindow = ({ uid, currentPrice, closeWindow, mode }) => {
   const buttonColor = isBuy ? "#4184f3" : "#df514d";
 
   const handleOrder = async () => {
+    // 🛡️ FRONTEND GUARDRAILS: Prevent bad math or fat-finger mistakes
+    if (qty <= 0) return toast.error("Quantity must be at least 1");
+    if (price <= 0) return toast.error("Price must be greater than zero");
+    if (orderType === "GTT" && triggerPrice <= 0) {
+        return toast.error("Trigger price is required for GTT orders");
+    }
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(`${API_URL}/newOrder`, {

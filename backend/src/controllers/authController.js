@@ -2,8 +2,11 @@ const UserModel = require("../models/UserModel");
 const TempUser = require("../models/TempUserModel");
 const jwt = require("jsonwebtoken");
 const twilio = require("twilio");
+const bcrypt = require("bcryptjs"); // Used for checking passwords securely
 
-// Initialize Twilio
+// ==========================================
+// TWILIO INITIALIZATION
+// ==========================================
 let twilioClient;
 try {
   if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
@@ -29,7 +32,7 @@ async function sendEmailBrevo(toEmail, subject, textContent, htmlContent) {
         sender: { email: process.env.EMAIL_USER, name: 'Kite Zerodha' }, 
         to: [{ email: toEmail }], 
         subject: subject,
-        textContent: textContent, // Added for spam filter bypass
+        textContent: textContent,
         htmlContent: htmlContent
       })
     });
@@ -41,20 +44,23 @@ async function sendEmailBrevo(toEmail, subject, textContent, htmlContent) {
     console.error("❌ Email failed:", error.message);
   }
 }
-// ==========================================
 
-/**
- * 1. SIGNUP
- */
+// ==========================================
+// 1. SIGNUP (Creates TempUser and sends OTP)
+// ==========================================
 module.exports.signup = async (req, res) => {
   try {
     const { email, password, name, phone } = req.body;
     
+    // Check if user already exists in Permanent DB
     const existingUser = await UserModel.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) return res.status(400).json({ message: "Account already exists." });
 
+    // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
+    // Save user details + plain text password to Temp DB 
+    // (Password will be hashed later in verifyOtp before saving to Permanent DB)
     await TempUser.findOneAndUpdate(
       { email }, 
       { email, password, name, phone, otp, createdAt: Date.now() }, 
@@ -63,14 +69,15 @@ module.exports.signup = async (req, res) => {
 
     console.log(`\n🔑 [SIGNUP] OTP FOR ${name}: ${otp}\n`);
 
-    // Send via Brevo API (includes plain text and HTML)
+    // Send Email via Brevo
     sendEmailBrevo(
         email, 
         'Verify your Kite Account', 
-        `Hello ${name}, your signup OTP is: ${otp}`, // Text version
-        `<p>Hello ${name}, your signup OTP is: <strong>${otp}</strong></p>` // HTML version
+        `Hello ${name}, your signup OTP is: ${otp}`,
+        `<p>Hello ${name}, your signup OTP is: <strong>${otp}</strong></p>`
     );
 
+    // Send SMS via Twilio
     if (twilioClient) {
       twilioClient.messages.create({
           body: `Kite Signup OTP: ${otp}`,
@@ -88,75 +95,30 @@ module.exports.signup = async (req, res) => {
   }
 };
 
-/**
- * 2. SEND OTP (LOGIN ONLY)
- */
-module.exports.sendOtp = async (req, res) => {
-  try {
-    const { identifier } = req.body; 
-    
-    const user = await UserModel.findOne({
-      $or: [{ email: identifier }, { phone: identifier }]
-    });
-
-    if (!user) return res.status(404).json({ message: "Account not found." });
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.otp = otp;
-    user.otpExpiry = Date.now() + 10 * 60 * 1000;
-    await user.save();
-
-    console.log(`\n🔑 [LOGIN] OTP FOR ${user.name}: ${otp}\n`);
-
-    // Send via Brevo API
-    sendEmailBrevo(
-        user.email, 
-        'Your Kite Login OTP', 
-        `Hello ${user.name}, your login code is: ${otp}`,
-        `<p>Hello ${user.name}, your login code is: <strong>${otp}</strong></p>`
-    );
-
-    res.json({ message: "OTP sent successfully!" });
-  } catch (error) {
-    res.status(500).json({ message: "Internal Error" });
-  }
-};
-
-/**
- * 3. VERIFY OTP
- */
+// ==========================================
+// 2. VERIFY OTP (Finalizes Signup ONLY)
+// ==========================================
 module.exports.verifyOtp = async (req, res) => {
   try {
     const { identifier, otp } = req.body;
 
-    let user = await UserModel.findOne({
-      $or: [{ email: identifier }, { phone: identifier }]
-    });
-
-    if (user) {
-      if (user.otp === otp && user.otpExpiry > Date.now()) {
-        user.otp = null;
-        user.otpExpiry = null;
-        await user.save();
-        
-        sendLoginAlert(user);
-
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-        return res.json({ message: "Login success!", token, walletBalance: user.walletBalance });
-      } else {
-        return res.status(400).json({ message: "Invalid or expired OTP" });
-      }
-    }
-
+    // Find the temporary user
     const tempUser = await TempUser.findOne({
       $or: [{ email: identifier }, { phone: identifier }]
     });
 
     if (tempUser) {
+      // Check if OTP matches
       if (tempUser.otp === otp) {
+        
+        // HASH THE PASSWORD BEFORE SAVING TO PERMANENT DB
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(tempUser.password, salt);
+
+        // Move to Permanent Database
         const newUser = new UserModel({
           email: tempUser.email,
-          password: tempUser.password,
+          password: hashedPassword, // Save the encrypted password
           name: tempUser.name,
           phone: tempUser.phone,
           walletBalance: 100000 
@@ -165,6 +127,7 @@ module.exports.verifyOtp = async (req, res) => {
         await newUser.save();
         await TempUser.deleteOne({ _id: tempUser._id });
 
+        // Generate Token
         const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
         
         return res.json({ 
@@ -185,7 +148,43 @@ module.exports.verifyOtp = async (req, res) => {
   }
 };
 
-// Helper function for login alerts
+// ==========================================
+// 3. LOGIN (Uses Password instead of OTP)
+// ==========================================
+module.exports.login = async (req, res) => {
+  try {
+    const { identifier, password } = req.body; 
+    
+    // Find user by Email OR Phone
+    const user = await UserModel.findOne({
+      $or: [{ email: identifier }, { phone: identifier }]
+    });
+
+    if (!user) return res.status(404).json({ message: "Account not found." });
+
+    // Compare entered password with the hashed password in the database
+    const isMatch = await bcrypt.compare(password, user.password);
+    
+    if (!isMatch) {
+        return res.status(400).json({ message: "Invalid password." });
+    }
+
+    // Optional: Send Login Alert to Email
+    sendLoginAlert(user);
+
+    // Generate Token and Login
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    res.json({ message: "Login success!", token, walletBalance: user.walletBalance });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Error" });
+  }
+};
+
+// ==========================================
+// HELPER: SEND LOGIN ALERT
+// ==========================================
 async function sendLoginAlert(user) {
   const loginTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
   sendEmailBrevo(

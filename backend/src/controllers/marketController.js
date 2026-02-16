@@ -5,6 +5,38 @@ const OrdersModel = require("../models/OrdersModel");
 const HoldingsModel = require("../models/HoldingsModel");
 const UserModel = require("../models/UserModel");
 
+// ==========================================
+// TELEGRAM HTTP API HELPER (FREE ALERTS)
+// ==========================================
+async function sendTelegramAlert(chatId, message) {
+  try {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    if (!token || !chatId) return;
+
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'HTML' // Allows us to use <b>bold</b> and <i>italics</i>
+      })
+    });
+
+    if (response.ok) {
+      console.log(`✅ Telegram alert sent to Chat ID: ${chatId}`);
+    } else {
+      const errData = await response.json();
+      console.error("❌ Telegram failed:", errData.description);
+    }
+  } catch (error) {
+    console.error("❌ Telegram request error:", error.message);
+  }
+}
+
+
 // Base list of popular stocks to show by default
 const BASE_SYMBOLS = [
   "^NSEI", "^BSESN", "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "INFY.NS",
@@ -193,7 +225,7 @@ const processPendingOrders = async (currentMarketData, io) => {
 
         let executed = false;
         
-        // GTT Logic
+        /// --- GTT Logic ---
         if (order.orderType === "GTT" && !order.isTriggered) {
           if (
             (order.mode === "BUY" && stock.price <= order.triggerPrice) ||
@@ -201,19 +233,55 @@ const processPendingOrders = async (currentMarketData, io) => {
           ) {
             order.isTriggered = true;
             await order.save();
-            return;
+            
+            // 1. Emit a real-time alert via WebSockets (In-App Popup)
+            if (io) {
+               io.emit("personal-alert", {
+                  userId: order.userId.toString(), 
+                  title: "GTT Triggered 🎯",
+                  message: `Your ${order.mode} order for ${order.qty} shares of ${order.name} executed at ₹${stock.price}!`
+               });
+            }
+
+            // 2. [NEW] Fire off the Telegram Alert to their phone!
+            try {
+              const user = await UserModel.findById(order.userId);
+              // Only send if the user has linked their Telegram account
+              if (user && user.telegramChatId) {
+                const message = `🎯 <b>Kite GTT Alert</b>\n\nYour <b>${order.mode}</b> order for ${order.qty} shares of <b>${order.name}</b> has been triggered at ₹${stock.price}!\n\nIt is now executing on the live market.`;
+                sendTelegramAlert(user.telegramChatId, message);
+              }
+            } catch (err) {
+              console.log("❌ Failed to trigger Telegram alert.");
+            }
+          
           }
           return;
         }
 
-        // Limit Order Logic
+        // --- BUY Limit Order Logic ---
         if (order.mode === "BUY" && stock.price <= order.price) {
+          const totalCost = order.qty * order.price;
+          
+          // 1. Verify user still has enough funds before executing
+          const user = await UserModel.findById(order.userId);
+          if (!user || user.walletBalance < totalCost) {
+            order.status = "Rejected"; // Not enough money!
+            await order.save();
+            return;
+          }
+
+          // 2. Deduct money from wallet
+          user.walletBalance -= totalCost;
+          await user.save();
+
+          // 3. Add to Holdings
           const existingHolding = await HoldingsModel.findOne({ name: order.name, userId: order.userId });
 
           if (existingHolding) {
             let totalOldCost = existingHolding.qty * existingHolding.avg;
             let newTotalQty = existingHolding.qty + order.qty;
-            let newAvgPrice = (totalOldCost + order.qty * order.price) / newTotalQty;
+            let newAvgPrice = (totalOldCost + totalCost) / newTotalQty;
 
             existingHolding.qty = newTotalQty;
             existingHolding.avg = newAvgPrice;
@@ -231,15 +299,39 @@ const processPendingOrders = async (currentMarketData, io) => {
             });
           }
           executed = true;
+
+        // --- SELL Limit Order Logic ---
         } else if (order.mode === "SELL" && stock.price >= order.price) {
-          await UserModel.findByIdAndUpdate(order.userId, { $inc: { walletBalance: order.qty * order.price } });
+          
+          // 1. Verify user still actually owns the stock
+          const existingHolding = await HoldingsModel.findOne({ name: order.name, userId: order.userId });
+          if (!existingHolding || existingHolding.qty < order.qty) {
+            order.status = "Rejected"; // User doesn't own enough shares!
+            await order.save();
+            return;
+          }
+
+          // 2. Deduct stock from Holdings
+          if (existingHolding.qty === order.qty) {
+            await HoldingsModel.deleteOne({ _id: existingHolding._id }); // Sold all shares
+          } else {
+            existingHolding.qty -= order.qty; // Sold some shares
+            await existingHolding.save();
+          }
+
+          // 3. Add money to Wallet
+          await UserModel.findByIdAndUpdate(order.userId, { 
+            $inc: { walletBalance: order.qty * order.price } 
+          });
+          
           executed = true;
         }
 
+        // --- Finalize Execution ---
         if (executed) {
           order.status = "Executed";
           await order.save();
-          if (io) io.emit("order-executed", order);
+          if (io) io.emit("order-executed", order); // Tell the frontend to update UI!
         }
       })
     );

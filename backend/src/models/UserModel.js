@@ -19,6 +19,11 @@ const UserSchema = new mongoose.Schema({
     trim: true, 
     uppercase: true 
   }],
+  
+  telegramChatId: {
+    type: String, // E.g., "123456789"
+    default: null
+  },
 
   createdAt: { type: Date, default: new Date() },
 });

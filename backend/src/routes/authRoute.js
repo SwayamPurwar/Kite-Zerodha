@@ -1,8 +1,14 @@
-const router = require("express").Router();
-const { signup, sendOtp, verifyOtp } = require("../controllers/authController");
+const express = require("express");
+const router = express.Router();
+const { signup, verifyOtp, login } = require("../controllers/authController");
 
+// Signup Route (Generates OTP)
 router.post("/signup", signup);
-router.post("/send-otp", sendOtp);      
-router.post("/verify-otp", verifyOtp);   
+
+// Verify OTP Route (Finalizes Signup ONLY)
+router.post("/verify-otp", verifyOtp);
+
+// Login Route (Uses Password, NO OTP)
+router.post("/login", login);
 
 module.exports = router;

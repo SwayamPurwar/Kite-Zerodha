@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./responsive.css";
-
+import NotificationListener from "./components/NotificationListener";
 // Components
 import TopBar from "./components/TopBar";
 import WatchList from "./components/WatchList";
@@ -33,6 +33,7 @@ function App() {
 
   return (
     <BrowserRouter>
+    {isAuthenticated && <NotificationListener />}
       <ToastContainer position="bottom-right" autoClose={2000} hideProgressBar={false} theme="colored" />
       
       {/* 2. TopBar is ONLY visible when logged in */}
