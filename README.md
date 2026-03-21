@@ -103,7 +103,7 @@ kite-zerodha/
    npm install
    ```
 4. **Setup Environment Variables:**
-Create .env files in both the backend and frontend directories based on the tables below
+Create `.env` files in both the backend and frontend directories based on the tables below
  
 5. **Run the Development Servers:** 
 
