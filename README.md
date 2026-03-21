@@ -78,7 +78,7 @@ kite-zerodha/
 │   │   └── services/            # Axios API calling layer
 │   └── vite.config.js           # Vite bundler configuration
 ```
-##🚀 Getting Started
+## 🚀 Getting Started
 Prerequisites
 
 Node.js 18+ and npm
