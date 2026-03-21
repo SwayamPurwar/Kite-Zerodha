@@ -90,9 +90,8 @@ kite-zerodha/
 1. **Clone the repository:**
    ```bash
    git clone [https://github.com/SwayamPurwar/Kite-Zerodha.git](https://github.com/SwayamPurwar/Kite-Zerodha.git)
-cd Kite-Zerodha
-
-
+   cd Kite-Zerodha
+   ```
 2. **Install dependencies:**
    ```bash
    cd backend
