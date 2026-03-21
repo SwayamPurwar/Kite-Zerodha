@@ -1,12 +1,12 @@
 # Kite - Zerodha Clone
 
 <p align="center">
-  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
-  <img src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
-  <img src="https://img.shields.io/badge/Socket.io-black?style=for-the-badge&logo=socket.io&badgeColor=010101" alt="Socket.io" />
-  <img src="https://img.shields.io/badge/Razorpay-02042B?style=for-the-badge&logo=razorpay" alt="Razorpay" />
-  <img src="https://img.shields.io/badge/Material--UI-0081CB?style=for-the-badge&logo=mui&logoColor=white" alt="Material-UI" />
+  <img src="https://img.shields.io/badge/React-19-black?style=for-the-badge&logo=react" alt="React 19" />
+  <img src="https://img.shields.io/badge/Node.js-Express-green?style=for-the-badge&logo=nodedotjs" alt="Node.js" />
+  <img src="https://img.shields.io/badge/MongoDB-Mongoose-green?style=for-the-badge&logo=mongodb" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/Socket.io-black?style=for-the-badge&logo=socketdotio" alt="Socket.io" />
+  <img src="https://img.shields.io/badge/Razorpay-Payment-blue?style=for-the-badge&logo=razorpay" alt="Razorpay" />
+  <img src="https://img.shields.io/badge/Material--UI-blue?style=for-the-badge&logo=mui" alt="MUI" />
   <img src="https://img.shields.io/badge/License-ISC-yellow.svg?style=for-the-badge" alt="License ISC" />
 </p>
 
@@ -44,16 +44,16 @@
 
 | Category | Technology |
 |---|---|
-| **Frontend Framework** | React 19 (Vite) |
-| **Backend Framework** | Node.js & Express.js 5 |
-| **Database** | MongoDB (Mongoose) |
-| **Real-time Engine** | Socket.io |
-| **Market Data API** | `yahoo-finance2` |
+| **Framework** | React 19 (Vite) |
+| **Backend** | Node.js & Express.js 5.2 |
+| **Database** | MongoDB (Mongoose 9.2) |
+| **Real-time Engine** | Socket.io 4.8 |
+| **Market Data API** | Yahoo Finance API (`yahoo-finance2`) |
 | **Payment Gateway** | Razorpay |
 | **SMS Services** | Twilio |
-| **Charting** | Lightweight Charts & React Chart.js 2 |
-| **Styling** | Material-UI (MUI), Emotion, Vanilla CSS |
-| **Validation** | Zod |
+| **Charting** | Lightweight Charts 4.2 & Chart.js 4.5 |
+| **Styling** | Material-UI (MUI) & Vanilla CSS |
+| **Validation** | Zod 4.3 |
 
 ## 📁 Project Structure
 
@@ -62,11 +62,12 @@ kite-zerodha/
 ├── backend/
 │   ├── src/
 │   │   ├── config/              # Database & environment configurations
-│   │   ├── controllers/         # Logic for auth, market, orders, payments
+│   │   ├── controllers/         # Logic for auth, market, orders, payments, holdings
 │   │   ├── middleware/          # JWT auth protection
-│   │   ├── models/              # Mongoose schemas (User, Orders, Holdings)
+│   │   ├── models/              # Mongoose schemas (User, Orders, Holdings, Transactions)
 │   │   └── routes/              # Express API endpoints
 │   ├── dummyData.js             # Script to seed initial DB data
+│   ├── clearDB.js               # Script to wipe DB data
 │   └── index.js                 # Backend server entry point
 ├── frontend/
 │   ├── public/                  # Static assets
@@ -74,10 +75,13 @@ kite-zerodha/
 │   │   ├── components/          # Reusable UI (TopBar, Charts, Action Windows)
 │   │   ├── context/             # React Context for global state (UserContext)
 │   │   ├── hooks/               # Custom hooks (e.g., useMarketData)
-│   │   ├── pages/               # Main views (Dashboard, Holdings, Funds, Login)
-│   │   └── services/            # Axios API calling layer
+│   │   ├── pages/               # Main views (Dashboard, Holdings, Funds, Account, Login)
+│   │   ├── services/            # Axios API calling layer
+│   │   ├── config.js            # Frontend configuration
+│   │   └── App.jsx              # Main App Component
 │   └── vite.config.js           # Vite bundler configuration
 ```
+
 ## 🚀 Getting Started
 Prerequisites
 
@@ -105,7 +109,7 @@ Bash
 # Optional: Seed the database with dummy data
 node dummyData.js
 
-# Start the backend server
+# Start the backend server in development mode
 npm run dev
 Setup the Frontend:
 Open a new terminal window:
@@ -118,7 +122,8 @@ Create a .env file in the frontend directory if needed for API URL routing.
 Bash
 # Start the Vite development server
 npm run dev
-🔑 Environment Variables
+
+## 🔑 Environment Variables
 Backend (backend/.env)
 | Variable | Description | Required |
 |---|---|---|
@@ -147,7 +152,7 @@ Route	Method	Description
 /api/payment/create-order	POST	Initialize Razorpay transaction
 /api/payment/verify	POST	Verify signature and update wallet funds
 🧠 How The Trading Engine Works
-Market Data Streaming: The backend connects to financial APIs (like yahoo-finance2) to poll real-time pricing.
+Market Data Streaming: The backend connects to financial APIs to poll real-time pricing via yahoo-finance2.
 
 WebSocket Broadcasting: Changes in stock prices are emitted globally to connected frontend clients using socket.io.
 
@@ -173,7 +178,7 @@ Open a Pull Request.
 👨‍💻 Author
 Swayam Purwar
 
-Portfolio: swayampurwar.vercel.app
+Live Case Study: Kite Case Study
 
 GitHub: @swayampurwar
 
