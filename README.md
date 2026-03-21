@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jatin12-alt/Kite-Zerodha">
+  <a href="https://github.com/SwayamPurwar/Kite-Zerodha">
     <img src="https://img.shields.io/badge/GitHub-Source_Code-black?style=for-the-button&logo=github" alt="GitHub" />
   </a>
 </p>
