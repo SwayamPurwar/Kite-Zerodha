@@ -127,7 +127,6 @@ npm run dev
 
 | Variable | Description | Required |
 |---|---|---|
-
 | PORT | API Port (e.g., 3000) | ✅ |
 | MONGO_URI | MongoDB connection string | ✅ |
 | JWT_SECRET | Secret key for signing tokens | ✅ |
@@ -139,6 +138,7 @@ npm run dev
 ### Frontend (frontend/.env)
 
 | Variable | Description |Required |
+|---|---|---|
 | VITE_API_URL | Backend API Base URL | ✅ |
 | VITE_WS_URL | WebSocket Server URL | ✅ |
 
