@@ -107,18 +107,17 @@ Create .env files in both the backend and frontend directories based on the tabl
  
 5. **Run the Development Servers:** 
 
-**Terminal 1 (Backend):**
+   **Terminal 1 (Backend):**
+   ```bash
+   cd backend
+   npm run dev
+   ```
 
-```bash
-cd backend
-npm run dev
-```
-
-**Terminal 2 (Frontend):**
-```bash
-cd frontend
-npm run dev
-```
+   **Terminal 2 (Frontend):**
+   ```bash
+   cd frontend
+   npm run dev
+   ```
 
 ## 🔑 Environment Variables
 
