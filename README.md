@@ -77,3 +77,112 @@ kite-zerodha/
 │   │   ├── pages/               # Main views (Dashboard, Holdings, Funds, Login)
 │   │   └── services/            # Axios API calling layer
 │   └── vite.config.js           # Vite bundler configuration
+```
+🚀 Getting Started
+Prerequisites
+
+Node.js 18+ and npm
+
+MongoDB URI (Local or Atlas)
+
+API Keys for: Razorpay, Twilio, and Yahoo Finance (optional depending on rate limits)
+
+Installation
+
+Clone the repository:
+
+Bash
+git clone [https://github.com/swayampurwar/kite-zerodha.git](https://github.com/swayampurwar/kite-zerodha.git)
+cd kite-zerodha
+Setup the Backend:
+
+Bash
+cd backend
+npm install
+Create a .env file in the backend directory (see Environment Variables below).
+
+Bash
+# Optional: Seed the database with dummy data
+node dummyData.js
+
+# Start the backend server
+npm run dev
+Setup the Frontend:
+Open a new terminal window:
+
+Bash
+cd frontend
+npm install
+Create a .env file in the frontend directory if needed for API URL routing.
+
+Bash
+# Start the Vite development server
+npm run dev
+🔑 Environment Variables
+Backend (backend/.env)
+| Variable | Description | Required |
+|---|---|---|
+| PORT | Backend server port (e.g., 3002) | ✅ |
+| MONGO_URI | MongoDB connection string | ✅ |
+| JWT_SECRET | Secret key for signing tokens | ✅ |
+| RAZORPAY_KEY_ID | Razorpay Public Key | ✅ |
+| RAZORPAY_KEY_SECRET | Razorpay Secret Key | ✅ |
+| TWILIO_ACCOUNT_SID | Twilio Account SID | ✅ |
+| TWILIO_AUTH_TOKEN | Twilio Auth Token | ✅ |
+| TWILIO_PHONE_NUMBER | Twilio Phone Number | ✅ |
+
+Frontend (frontend/.env)
+| Variable | Description | Required |
+|---|---|---|
+| VITE_API_URL | Backend API Base URL | ✅ |
+
+🔌 API Routes
+Route	Method	Description
+/api/auth/signup	POST	Register a new user account
+/api/auth/login	POST	Authenticate user and return JWT
+/api/market/ticker	GET	Fetch initial market data for watchlist
+/api/holdings	GET	Retrieve user's current stock holdings
+/api/orders/place	POST	Place a new buy/sell order
+/api/orders	GET	Fetch order history
+/api/payment/create-order	POST	Initialize Razorpay transaction
+/api/payment/verify	POST	Verify signature and update wallet funds
+🧠 How The Trading Engine Works
+Market Data Streaming: The backend connects to financial APIs (like yahoo-finance2) to poll real-time pricing.
+
+WebSocket Broadcasting: Changes in stock prices are emitted globally to connected frontend clients using socket.io.
+
+Frontend Rendering: The useMarketData hook listens to these WebSocket events, updating the Watchlist and Candlestick Charts in real-time without refreshing the page.
+
+Order Execution: When a user buys a stock via the BuyActionWindow, an API call is made. The backend verifies sufficient funds, deducts the total, updates the OrdersModel, and appends the asset to the HoldingsModel.
+
+Fund Management: Users top up their mock wallet using the Razorpay gateway. Upon successful payment verification on the backend, the user's balance is updated in the database.
+
+🤝 Contributing
+We welcome contributions! To contribute:
+
+Fork the repository.
+
+Create a new branch: git checkout -b feature/your-feature-name.
+
+Commit your changes: git commit -m 'Add some feature'.
+
+Push to the branch: git push origin feature/your-feature-name.
+
+Open a Pull Request.
+
+👨‍💻 Author
+Swayam Purwar
+
+Portfolio: swayampurwar.vercel.app
+
+GitHub: @swayampurwar
+
+📄 License
+This project is licensed under the ISC License - see the LICENSE file for details.
+
+<p align="center">
+Built with ❤️ by Swayam Purwar
+
+
+<a href="https://swayampurwar.vercel.app/work/kite-casestudy.html">Read the Case Study</a>
+</p>
