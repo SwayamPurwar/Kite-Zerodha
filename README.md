@@ -91,7 +91,6 @@ kite-zerodha/
    ```bash
    git clone [https://github.com/SwayamPurwar/Kite-Zerodha.git](https://github.com/SwayamPurwar/Kite-Zerodha.git)
 cd Kite-Zerodha
-```
 
 
 2. **Install dependencies:**
