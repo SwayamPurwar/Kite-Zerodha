@@ -98,10 +98,10 @@ kite-zerodha/
    npm install
    ```
 3. **Install Frontend Dependencies:**
-```bash
-cd ../frontend
-npm install
-```
+   ```bash
+   cd ../frontend
+   npm install
+   ```
 4. **Setup Environment Variables:**
 Create .env files in both the backend and frontend directories based on the tables below
  
