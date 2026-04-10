@@ -12,8 +12,8 @@ const rateLimit = require("express-rate-limit");
 dotenv.config();
 
 // Ensure critical variables exist
-if (!process.env.JWT_SECRET || !process.env.MONGO_URL) {
-  console.error("FATAL ERROR: JWT_SECRET or MONGO_URL is not defined.");
+if (!process.env.JWT_SECRET || !process.env.MONGODB_URL) {
+  console.error("FATAL ERROR: JWT_SECRET or MONGODB_URL is not defined.");
   process.exit(1); 
 }
 
