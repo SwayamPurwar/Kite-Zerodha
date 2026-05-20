@@ -46,7 +46,6 @@ const Orders = () => {
   return (
     <div className="holdings-container">
       
-      {/* Top Header & Tabs matching Kite's UI */}
       <div className="holdings-header">
         <h3 style={{ fontSize: "1.2rem", fontWeight: "400", color: "#cecece", margin: 0 }}>
            Orders ({filteredOrders.length})

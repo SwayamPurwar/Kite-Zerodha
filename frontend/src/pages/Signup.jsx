@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import "./Auth.css";
 import { API_URL } from "../config";
 import { UserContext } from "../context/UserContext";
+import Logo from "../components/Logo";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -62,7 +63,7 @@ const Signup = () => {
       localStorage.removeItem("avatar");
       login(res.data.token, res.data.walletBalance);
       
-      toast.success("Signup complete! Welcome to Kite.");
+      toast.success("Signup complete! Welcome to Swayam Capital.");
       setTimeout(() => { navigate("/"); }, 1000); 
       
     } catch (error) {
@@ -75,18 +76,17 @@ const Signup = () => {
   return (
     <div className="auth-container">
       <div className="auth-box">
-        <img 
-          src="https://zerodha.com/static/images/logo.svg" 
-          alt="Logo" 
-          style={{ width: "140px", marginBottom: "30px", filter: "invert(1) opacity(0.8)" }} 
+        <Logo 
+          isDarkBg={false} 
+          style={{ justifyContent: "center", marginBottom: "15px", transform: "scale(1.3)" }} 
         />
-        <h2>Sign up to Kite</h2>
+        <h2>Sign up to Swayam Capital</h2>
         
         {step === 1 ? (
             <form className="auth-form" onSubmit={handleSignupStep1}>
               <input type="text" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
               <div style={{ display: "flex", gap: "10px" }}>
-                  <input type="text" value="+91" disabled style={{ width: "50px", textAlign: "center", backgroundColor: "#1e1e1e", color: "#888" }} />
+                  <input type="text" value="+91" disabled style={{ width: "55px", textAlign: "center", backgroundColor: "#1e1e1e", color: "#888" }} />
                   <input 
                     type="tel" placeholder="10-digit Mobile Number" value={phone} 
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}

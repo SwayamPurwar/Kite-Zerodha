@@ -1,4 +1,4 @@
-# Kite-Zerodha Clone — Full-Stack Trading Platform
+# Swayam-Capital — Full-Stack Trading Platform
 
 <p align="center">
   <img src="https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react" alt="React 19" />
@@ -11,13 +11,13 @@
 </p>
 
 <p align="center">
-  <strong>A comprehensive, real-time trading platform inspired by Zerodha's Kite.</strong><br/>
+  <strong>A comprehensive, real-time Trading Dashboard UI (inspired by modern broker platforms).</strong><br/>
   Track markets, execute mock trades, manage your portfolio,<br/>
   and analyze real-time candlestick charts.
 </p>
 
 <p align="center">
-  <a href="https://github.com/SwayamPurwar/Kite-Zerodha">
+  <a href="https://github.com/SwayamPurwar/Swayam-Capital">
     <img src="https://img.shields.io/badge/GitHub-Source_Code-black?style=for-the-button&logo=github" alt="GitHub" />
   </a>
 </p>
@@ -54,7 +54,7 @@
 ## 📁 Project Structure
 
 ```text
-kite-zerodha/
+swayam-capital/
 ├── backend/
 │   ├── src/
 │   │   ├── config/          # Database and server configurations
@@ -89,8 +89,8 @@ kite-zerodha/
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/SwayamPurwar/Kite-Zerodha.git](https://github.com/SwayamPurwar/Kite-Zerodha.git)
-   cd Kite-Zerodha
+   git clone [https://github.com/SwayamPurwar/Swayam-Capital.git](https://github.com/SwayamPurwar/Swayam-Capital.git)
+   cd Swayam-Capital
    ```
 2. **Install dependencies:**
    ```bash
@@ -126,12 +126,12 @@ Create `.env` files in both the backend and frontend directories based on the ta
 | Variable | Description | Required |
 |---|---|---|
 | PORT | API Port (e.g., 3000) | ✅ |
-| MONGO_URI | MongoDB connection string | ✅ |
+| MONGODB_URL | MongoDB connection string | ✅ |
 | JWT_SECRET | Secret key for signing tokens | ✅ |
 | RAZORPAY_KEY_ID | Razorpay public key | ✅ |
 | RAZORPAY_KEY_SECRET | Razorpay secret key | ✅ |
-| EMAIL_USER | SMTP email address | Optional |
-| EMAIL_PASS |SMTP email password | Optional |
+| EMAIL_USER | SMTP email address | ✅ |
+| EMAIL_PASS |SMTP email password | ✅ |
 
 ### Frontend (frontend/.env)
 
@@ -181,5 +181,5 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 <p align="center">
   Built with ❤️ by Swayam Purwar
   <br/>
-  <a href="https://swayamzerodha.vercel.app/">swayamzerodha.vercel.app</a>
+  <a href="https://swayamcapital.vercel.app/">Live Demo</a>
 </p>

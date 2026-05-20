@@ -29,7 +29,7 @@ async function sendEmailBrevo(toEmail, subject, textContent, htmlContent) {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        sender: { email: process.env.EMAIL_USER, name: 'Kite Zerodha' }, 
+        sender: { email: process.env.EMAIL_USER, name: 'Swayam Capital' }, 
         to: [{ email: toEmail }], 
         subject: subject,
         textContent: textContent,
@@ -72,7 +72,7 @@ module.exports.signup = async (req, res) => {
     // Send Email via Brevo
     sendEmailBrevo(
         email, 
-        'Verify your Kite Account', 
+        'Verify your Swayam Capital Account', 
         `Hello ${name}, your signup OTP is: ${otp}`,
         `<p>Hello ${name}, your signup OTP is: <strong>${otp}</strong></p>`
     );
@@ -80,7 +80,7 @@ module.exports.signup = async (req, res) => {
     // Send SMS via Twilio
     if (twilioClient) {
       twilioClient.messages.create({
-          body: `Kite Signup OTP: ${otp}`,
+          body: `Swayam Capital Signup OTP: ${otp}`,
           from: process.env.TWILIO_PHONE_NUMBER,
           to: `+91${phone}`
       }).then(() => console.log(`✅ SMS sent to ${phone}`))
@@ -131,7 +131,7 @@ module.exports.verifyOtp = async (req, res) => {
         const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
         
         return res.json({ 
-          message: "Signup successful! Welcome to Kite.", 
+          message: "Signup successful! Welcome to Swayam Capital.", 
           token, 
           walletBalance: newUser.walletBalance 
         });

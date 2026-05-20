@@ -4,22 +4,22 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #121212; /* Dark Mode Background */
+  background-color: #121212; 
 }
 
 .auth-box {
-  background: #191919; /* Card Background */
+  background: #191919; 
   padding: 40px;
-  border-radius: 4px; /* Slightly sharper corners like Kite */
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3); /* Softer, darker shadow */
-  border: 1px solid #2b2b2b; /* Subtle border */
+  border-radius: 4px; 
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3); 
+  border: 1px solid #2b2b2b; 
   width: 100%;
   max-width: 400px;
   text-align: center;
 }
 
 .auth-box h2 {
-  color: #cecece; /* Primary Text */
+  color: #cecece; 
   margin-bottom: 25px;
   font-weight: 500;
   font-size: 1.5rem;
@@ -33,17 +33,17 @@
 
 .auth-form input {
   padding: 12px 15px;
-  background-color: #121212; /* Input Background */
-  border: 1px solid #2b2b2b; /* Input Border */
+  background-color: #121212; 
+  border: 1px solid #2b2b2b; 
   border-radius: 4px;
   font-size: 14px;
   outline: none;
-  color: #cecece; /* Input Text */
+  color: #cecece; 
   transition: border 0.2s;
 }
 
 .auth-form input:focus {
-  border-color: #4184f3; /* Kite Blue Focus */
+  border-color: #8b5cf6; /* Updated to Purple Brand Color */
   background-color: #1e1e1e;
 }
 
@@ -52,7 +52,7 @@
 }
 
 .auth-btn {
-  background-color: #df514d; /* Kite Red */
+  background-color: #8b5cf6; /* Updated to Purple Brand Color */
   color: white;
   padding: 12px;
   border: none;
@@ -66,17 +66,17 @@
 }
 
 .auth-btn:hover {
-  background-color: #c94642;
+  background-color: #7c3aed; /* Darker Purple for Hover */
 }
 
 .auth-link {
   margin-top: 25px;
   font-size: 13px;
-  color: #888; /* Muted Text */
+  color: #888; 
 }
 
 .auth-link span {
-  color: #4184f3; /* Kite Blue Link */
+  color: #8b5cf6; /* Updated to Purple Brand Color */
   cursor: pointer;
   text-decoration: none;
   font-weight: 500;
@@ -84,5 +84,5 @@
 }
 
 .auth-link span:hover {
-  color: #2a6cd9;
+  color: #7c3aed;
 }

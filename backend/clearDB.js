@@ -5,7 +5,7 @@ const HoldingsModel = require("./src/models/HoldingsModel");
 const OrdersModel = require("./src/models/OrdersModel");
 const TransactionModel = require("./src/models/TransactionModel");
 
-const DB_URL = process.env.MONGO_URL;
+const DB_URL = process.env.MONGODB_URL; // Match with your main env config
 
 mongoose.connect(DB_URL)
     .then(() => console.log("DB Connected!"))

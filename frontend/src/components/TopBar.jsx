@@ -4,6 +4,7 @@ import { UserContext } from "../context/UserContext";
 import { io } from "socket.io-client"; // Import socket
 import { API_URL } from "../config";
 import "./TopBar.css";
+import Logo from "./Logo";
 
 const TopBar = () => {
   const { user } = useContext(UserContext);
@@ -58,8 +59,7 @@ const TopBar = () => {
 
       {/* ... Keep the Center and Right sections exactly as they were ... */}
        <div className="center-section">
-        <img src="https://zerodha.com/static/images/logo.svg" alt="Logo" style={{ height: "16px", filter: "brightness(0) invert(1) sepia(1) saturate(10000%) hue-rotate(15deg) opacity(0.8)" }} />
-        
+      <Logo isDarkBg={true} style={{ marginRight: "30px", cursor: "pointer" }} />
         <div className="menu-section">
           <div className="menu-item"><Link to="/">Dashboard</Link></div>
           <div className="menu-item"><Link to="/orders">Orders</Link></div>

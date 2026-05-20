@@ -248,7 +248,7 @@ const processPendingOrders = async (currentMarketData, io) => {
               const user = await UserModel.findById(order.userId);
               // Only send if the user has linked their Telegram account
               if (user && user.telegramChatId) {
-                const message = `🎯 <b>Kite GTT Alert</b>\n\nYour <b>${order.mode}</b> order for ${order.qty} shares of <b>${order.name}</b> has been triggered at ₹${stock.price}!\n\nIt is now executing on the live market.`;
+                const message = `🎯 <b>Swayam Capital GTT Alert</b>\n\nYour <b>${order.mode}</b> order for ${order.qty} shares of <b>${order.name}</b> has been triggered at ₹${stock.price}!\n\nIt is now executing on the live market.`;
                 sendTelegramAlert(user.telegramChatId, message);
               }
             } catch (err) {

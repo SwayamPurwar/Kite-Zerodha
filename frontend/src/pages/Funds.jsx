@@ -76,7 +76,7 @@ const Funds = () => {
           key: RAZORPAY_KEY_ID,
           amount: order.amount,
           currency: "INR",
-          name: "Kite Zerodha",
+          name: "Swayam Capital",
           description: "Add Funds to Wallet",
           order_id: order.id,
           handler: async function (response) {

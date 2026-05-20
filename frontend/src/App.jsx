@@ -26,7 +26,7 @@ function App() {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#444' }}>
-        Loading Kite...
+        Loading Swayam Capital...
       </div>
     );
   }

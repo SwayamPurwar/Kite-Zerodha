@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import "./Auth.css";
 import { API_URL } from "../config";
 import { UserContext } from "../context/UserContext";
+import Logo from "../components/Logo";
 
 const Login = () => {
   const [identifier, setIdentifier] = useState(""); 
@@ -22,7 +23,7 @@ const Login = () => {
       
       localStorage.removeItem("avatar");
       login(res.data.token, res.data.walletBalance);
-      toast.success("Welcome back to Kite!");
+      toast.success("Welcome back to Swayam Capital!");
       
       setTimeout(() => { navigate("/"); }, 1000);
       
@@ -36,12 +37,11 @@ const Login = () => {
   return (
     <div className="auth-container">
       <div className="auth-box">
-        <img 
-          src="https://zerodha.com/static/images/logo.svg" 
-          alt="Logo" 
-          style={{ width: "140px", marginBottom: "30px", filter: "invert(1) opacity(0.8)" }} 
+       <Logo 
+          isDarkBg={false} 
+          style={{ justifyContent: "center", marginBottom: "15px", transform: "scale(1.3)" }} 
         />
-        <h2>Login to Kite</h2>
+        <h2>Login to Swayam Capital</h2>
         
         <form className="auth-form" onSubmit={handleLogin}>
           <input 

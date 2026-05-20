@@ -6,8 +6,8 @@
 }
 
 body {
-  background-color: #121212; /* Kite Dark Mode Background */
-  color: #cecece; /* Kite Primary Text */
+  background-color: #121212;
+  color: #cecece; 
   height: 100vh;
   overflow: hidden;
 }
@@ -52,7 +52,7 @@ table {
 }
 
 th {
-  text-align: right; /* Kite aligns numbers to the right */
+  text-align: right; 
   padding: 12px 15px;
   border-bottom: 1px solid #2b2b2b;
   color: #9b9b9b;
@@ -74,9 +74,9 @@ tr:hover {
   background-color: #1e1e1e;
 }
 
-/* --- UTILITIES --- */
-.buy { color: #4184f3; background: rgba(65, 132, 243, 0.1); padding: 4px 8px; border-radius: 3px; font-size: 11px; text-transform: uppercase; }
-.sell { color: #df514d; background: rgba(223, 81, 77, 0.1); padding: 4px 8px; border-radius: 3px; font-size: 11px; text-transform: uppercase; }
-.profit { color: #4caf50 !important; }
-.loss { color: #df514d !important; }
+/* --- UTILITIES (Altered from Zerodha colors to Generic Emerald/Rose) --- */
+.buy { color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 3px; font-size: 11px; text-transform: uppercase; }
+.sell { color: #e11d48; background: rgba(225, 29, 72, 0.1); padding: 4px 8px; border-radius: 3px; font-size: 11px; text-transform: uppercase; }
+.profit { color: #10b981 !important; }
+.loss { color: #e11d48 !important; }
 .text-muted { color: #888; font-size: 0.85rem; }

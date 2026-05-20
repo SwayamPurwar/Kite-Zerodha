@@ -1,4 +1,3 @@
-// Kite-Zerodha/backend/index.js
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
@@ -39,14 +38,14 @@ app.use("/auth", limiter);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://swayamzerodha.vercel.app", "https://kite-zerodha-seven.vercel.app"],
+    origin: ["http://localhost:5173","https://swayamcapital.vercel.app"],
     methods: ["GET", "POST"],
     credentials: true
   }
 });
 
 app.use(cors({
-  origin: ["http://localhost:5173", "https://swayamzerodha.vercel.app", "https://kite-zerodha-seven.vercel.app"],
+  origin: ["http://localhost:5173","https://swayamcapital.vercel.app"],
   credentials: true
 }));
 
@@ -55,7 +54,7 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 // Root Route
 app.get("/", (req, res) => {
-    res.send("<h1>Kite Zerodha Backend is Running!</h1>");
+    res.send("<h1>Swayam Capital Backend is Running!</h1>");
 });
 
 // Routes
